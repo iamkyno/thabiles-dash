@@ -1,0 +1,389 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------- Auth (Better Auth managed shape: core + admin plugin) ----------
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  phone         String?
+  role          String?   @default("STAFF")
+  banned        Boolean?  @default(false)
+  banReason     String?
+  banExpires    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  sessions Session[]
+  accounts Account[]
+
+  purchaseOrders    PurchaseOrder[]   @relation("POCreatedBy")
+  productionBatches ProductionBatch[] @relation("BatchProducedBy")
+  ordersCreated     Order[]           @relation("OrderCreatedBy")
+  paymentsRecorded  Payment[]         @relation("RecordedPayments")
+}
+
+model Session {
+  id             String   @id @default(cuid())
+  token          String   @unique
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ipAddress      String?
+  userAgent      String?
+  impersonatedBy String?
+  expiresAt      DateTime
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accountId             String
+  providerId            String
+  password              String?
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+// ---------- Business profile / settings ----------
+
+model BusinessProfile {
+  id            Int      @id @default(1)
+  businessName  String
+  logoUrl       String?
+  address       String?
+  taxNumber     String?
+  currencyCode  String   @default("ZAR")
+  timezone      String   @default("Africa/Johannesburg")
+  invoicePrefix String   @default("INV")
+  updatedAt     DateTime @updatedAt
+}
+
+// ---------- Domain ----------
+
+enum MaterialType {
+  RAW_INGREDIENT
+  PACKAGING
+}
+
+enum Unit {
+  MG
+  G
+  KG
+  ML
+  L
+  PIECE
+}
+
+enum PurchaseOrderStatus {
+  DRAFT
+  ORDERED
+  PARTIALLY_RECEIVED
+  RECEIVED
+  CANCELLED
+}
+
+enum ProductionBatchStatus {
+  PLANNED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  FULFILLED
+  CANCELLED
+}
+
+enum DeliveryStatus {
+  PENDING
+  IN_TRANSIT
+  DELIVERED
+  FAILED
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PARTIALLY_PAID
+  PAID
+  OVERDUE
+  VOID
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  EFT
+  MOBILE_MONEY
+  OTHER
+}
+
+model Supplier {
+  id          String   @id @default(cuid())
+  name        String
+  contactName String?
+  phone       String?
+  email       String?
+  address     String?
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  materials      Material[]
+  purchaseOrders PurchaseOrder[]
+}
+
+model Material {
+  id                String       @id @default(cuid())
+  sku               String       @unique
+  name              String
+  type              MaterialType
+  unit              Unit
+  costPerUnit       Decimal      @db.Decimal(12, 4)
+  stockQty          Decimal      @default(0) @db.Decimal(12, 3)
+  reorderLevel      Decimal      @default(0) @db.Decimal(12, 3)
+  primarySupplier   Supplier?    @relation(fields: [primarySupplierId], references: [id])
+  primarySupplierId String?
+  isActive          Boolean      @default(true)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  recipeItems        RecipeItem[]
+  purchaseOrderItems PurchaseOrderItem[]
+  batchUsages        BatchMaterialUsage[]
+}
+
+model PurchaseOrder {
+  poSeq       Int                 @id @default(autoincrement())
+  id          String              @unique @default(cuid())
+  supplier    Supplier            @relation(fields: [supplierId], references: [id])
+  supplierId  String
+  status      PurchaseOrderStatus @default(DRAFT)
+  orderedAt   DateTime?           @db.Timestamptz(3)
+  expectedAt  DateTime?           @db.Timestamptz(3)
+  receivedAt  DateTime?           @db.Timestamptz(3)
+  subtotal    Decimal             @db.Decimal(12, 2)
+  total       Decimal             @db.Decimal(12, 2)
+  createdBy   User                @relation("POCreatedBy", fields: [createdById], references: [id])
+  createdById String
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  items PurchaseOrderItem[]
+}
+
+model PurchaseOrderItem {
+  id               String        @id @default(cuid())
+  purchaseOrder    PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  purchaseOrderId  String
+  material         Material      @relation(fields: [materialId], references: [id])
+  materialId       String
+  quantityOrdered  Decimal       @db.Decimal(12, 3)
+  quantityReceived Decimal       @default(0) @db.Decimal(12, 3)
+  unitCost         Decimal       @db.Decimal(12, 4)
+  lineTotal        Decimal       @db.Decimal(12, 2)
+}
+
+model FinishedProduct {
+  id           String   @id @default(cuid())
+  sku          String   @unique
+  name         String
+  description  String?
+  unitSize     String?
+  sellPrice    Decimal  @db.Decimal(12, 2)
+  stockQty     Int      @default(0)
+  reorderLevel Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  recipe     Recipe?
+  batches    ProductionBatch[]
+  orderItems OrderItem[]
+}
+
+model Recipe {
+  id            String   @id @default(cuid())
+  product       FinishedProduct @relation(fields: [productId], references: [id])
+  productId     String   @unique
+  version       Int      @default(1)
+  yieldQuantity Int
+  instructions  String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  items   RecipeItem[]
+  batches ProductionBatch[]
+}
+
+model RecipeItem {
+  id               String   @id @default(cuid())
+  recipe           Recipe   @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  recipeId         String
+  material         Material @relation(fields: [materialId], references: [id])
+  materialId       String
+  quantityPerBatch Decimal  @db.Decimal(12, 3)
+}
+
+model ProductionBatch {
+  batchSeq     Int                   @id @default(autoincrement())
+  id           String                @unique @default(cuid())
+  product      FinishedProduct       @relation(fields: [productId], references: [id])
+  productId    String
+  recipe       Recipe                @relation(fields: [recipeId], references: [id])
+  recipeId     String
+  status       ProductionBatchStatus @default(PLANNED)
+  plannedQty   Int
+  actualQty    Int?
+  startedAt    DateTime?             @db.Timestamptz(3)
+  completedAt  DateTime?             @db.Timestamptz(3)
+  producedBy   User                  @relation("BatchProducedBy", fields: [producedById], references: [id])
+  producedById String
+  totalCost    Decimal?              @db.Decimal(12, 2)
+  notes        String?
+  createdAt    DateTime              @default(now())
+  updatedAt    DateTime              @updatedAt
+
+  materialUsages BatchMaterialUsage[]
+}
+
+model BatchMaterialUsage {
+  id              String          @id @default(cuid())
+  batch           ProductionBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  batchId         String
+  material        Material        @relation(fields: [materialId], references: [id])
+  materialId      String
+  quantityUsed    Decimal         @db.Decimal(12, 3)
+  unitCostAtUsage Decimal         @db.Decimal(12, 4)
+  lineCost        Decimal         @db.Decimal(12, 2)
+}
+
+model Customer {
+  id          String   @id @default(cuid())
+  name        String
+  contactName String?
+  phone       String?
+  email       String?
+  address     String?
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  orders     Order[]
+  invoices   Invoice[]
+  deliveries Delivery[]
+}
+
+model Order {
+  orderSeq    Int         @id @default(autoincrement())
+  id          String      @unique @default(cuid())
+  customer    Customer    @relation(fields: [customerId], references: [id])
+  customerId  String
+  status      OrderStatus @default(PENDING)
+  subtotal    Decimal     @db.Decimal(12, 2)
+  discountTotal Decimal   @default(0) @db.Decimal(12, 2)
+  taxTotal    Decimal     @default(0) @db.Decimal(12, 2)
+  total       Decimal     @db.Decimal(12, 2)
+  createdBy   User        @relation("OrderCreatedBy", fields: [createdById], references: [id])
+  createdById String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  items    OrderItem[]
+  invoice  Invoice?
+  delivery Delivery?
+}
+
+model OrderItem {
+  id          String          @id @default(cuid())
+  order       Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId     String
+  product     FinishedProduct @relation(fields: [productId], references: [id])
+  productId   String
+  description String
+  quantity    Int
+  unitPrice   Decimal         @db.Decimal(12, 2)
+  lineTotal   Decimal         @db.Decimal(12, 2)
+}
+
+model Delivery {
+  id           String         @id @default(cuid())
+  order        Order          @relation(fields: [orderId], references: [id])
+  orderId      String         @unique
+  customer     Customer       @relation(fields: [customerId], references: [id])
+  customerId   String
+  status       DeliveryStatus @default(PENDING)
+  address      String
+  scheduledAt  DateTime?      @db.Timestamptz(3)
+  dispatchedAt DateTime?      @db.Timestamptz(3)
+  deliveredAt  DateTime?      @db.Timestamptz(3)
+  courierName  String?
+  trackingRef  String?
+  notes        String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+}
+
+model Invoice {
+  invoiceSeq    Int           @id @default(autoincrement())
+  id            String        @unique @default(cuid())
+  order         Order         @relation(fields: [orderId], references: [id])
+  orderId       String        @unique
+  customer      Customer      @relation(fields: [customerId], references: [id])
+  customerId    String
+  status        InvoiceStatus @default(DRAFT)
+  issuedAt      DateTime?     @db.Timestamptz(3)
+  dueAt         DateTime?     @db.Timestamptz(3)
+  subtotal      Decimal       @db.Decimal(12, 2)
+  discountTotal Decimal       @default(0) @db.Decimal(12, 2)
+  taxTotal      Decimal       @default(0) @db.Decimal(12, 2)
+  total         Decimal       @db.Decimal(12, 2)
+  amountPaid    Decimal       @default(0) @db.Decimal(12, 2)
+  notes         String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  payments Payment[]
+}
+
+model Payment {
+  id           String        @id @default(cuid())
+  invoice      Invoice       @relation(fields: [invoiceId], references: [id])
+  invoiceId    String
+  amount       Decimal       @db.Decimal(12, 2)
+  method       PaymentMethod
+  reference    String?
+  paidAt       DateTime      @default(now()) @db.Timestamptz(3)
+  recordedBy   User          @relation("RecordedPayments", fields: [recordedById], references: [id])
+  recordedById String
+  createdAt    DateTime      @default(now())
+}
