@@ -16,9 +16,11 @@ import {
   Receipt,
   BarChart3,
   Settings,
+  MessageSquare,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 
 const navItems = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
@@ -60,6 +62,20 @@ export function SidebarNav({ isOwner }: { isOwner: boolean }) {
           </Link>
         );
       })}
+      <div
+        className="cursor-not-allowed rounded-md px-3 py-2 text-sm font-medium text-muted-foreground/60"
+        aria-disabled="true"
+      >
+        <div className="flex justify-end">
+          <Badge variant="outline" className="text-[10px] font-normal text-muted-foreground/60">
+            Coming soon
+          </Badge>
+        </div>
+        <div className="flex items-center gap-2.5">
+          <MessageSquare className="size-4 shrink-0" />
+          SMS Campaigns
+        </div>
+      </div>
       {isOwner && (
         <Link
           href="/dashboard/settings/business"
