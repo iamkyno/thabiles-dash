@@ -14,7 +14,7 @@ export default async function DashboardLayout({ children }: LayoutProps<"/dashbo
       <aside className="hidden w-60 shrink-0 flex-col border-r bg-sidebar md:flex">
         <div className="flex h-14 items-center border-b px-4">
           <Link href="/dashboard" className="font-semibold">
-            Thabile&apos;s Naturals
+            TSC-Thabiles Skin Care
           </Link>
         </div>
         <SidebarNav isOwner={isOwner} />
@@ -26,7 +26,7 @@ export default async function DashboardLayout({ children }: LayoutProps<"/dashbo
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="no-print flex h-14 items-center gap-3 border-b px-4 md:hidden">
           <MobileNav isOwner={isOwner} userName={session.user.name} userEmail={session.user.email} userRole={session.user.role ?? "STAFF"} />
-          <span className="font-semibold">Thabile&apos;s Naturals</span>
+          <span className="font-semibold">TSC-Thabiles Skin Care</span>
         </header>
         <main className="flex-1 bg-muted/20 p-4 md:p-6">{children}</main>
       </div>

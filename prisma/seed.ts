@@ -35,7 +35,7 @@ async function main() {
     update: {},
     create: {
       id: 1,
-      businessName: "Thabile's Naturals",
+      businessName: "TSC-Thabiles Skin Care",
       currencyCode: "ZAR",
       timezone: "Africa/Johannesburg",
       invoicePrefix: "INV",

@@ -14,7 +14,7 @@ export default async function LoginPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-xl">Thabile&apos;s Naturals</CardTitle>
+        <CardTitle className="text-xl">TSC-Thabiles Skin Care</CardTitle>
         <CardDescription>Sign in to the operations dashboard</CardDescription>
       </CardHeader>
       <CardContent>

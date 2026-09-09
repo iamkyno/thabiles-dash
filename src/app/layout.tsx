@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Thabile's Naturals — Operations Dashboard",
+  title: "TSC-Thabiles Skin Care — Operations Dashboard",
   description: "Natural beauty products manufacturing & sales management",
 };
 

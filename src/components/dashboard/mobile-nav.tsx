@@ -30,7 +30,7 @@ export function MobileNav({
         <DialogTitle className="sr-only">Navigation</DialogTitle>
         <div className="flex h-full flex-col" onClick={() => setOpen(false)}>
           <div className="flex h-14 items-center border-b px-4 font-semibold">
-            Thabile&apos;s Naturals
+            TSC-Thabiles Skin Care
           </div>
           <SidebarNav isOwner={isOwner} />
           <div className="border-t p-2">

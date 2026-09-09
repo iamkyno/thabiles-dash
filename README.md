@@ -1,4 +1,4 @@
-# Thabile's Naturals — Operations Dashboard
+# TSC-Thabiles Skin Care — Operations Dashboard
 
 A management dashboard for a natural beauty products manufacturer: suppliers, raw ingredient & packaging inventory, purchase orders with receiving, product recipes (bill of materials), production batches, customer sales orders, deliveries, invoicing and payments, and a reporting dashboard.
 
