@@ -9,12 +9,14 @@ import { SidebarNav } from "@/components/dashboard/sidebar-nav";
 import { UserMenu } from "@/components/dashboard/user-menu";
 
 export function MobileNav({
-  isOwner,
+  isAdmin,
+  allowedSections,
   userName,
   userEmail,
   userRole,
 }: {
-  isOwner: boolean;
+  isAdmin: boolean;
+  allowedSections: string[];
   userName: string;
   userEmail: string;
   userRole: string;
@@ -32,7 +34,7 @@ export function MobileNav({
           <div className="flex h-14 items-center border-b px-4 font-semibold">
             TSC-Thabiles Skin Care
           </div>
-          <SidebarNav isOwner={isOwner} />
+          <SidebarNav isAdmin={isAdmin} allowedSections={allowedSections} />
           <div className="border-t p-2">
             <UserMenu name={userName} email={userEmail} role={userRole} />
           </div>

@@ -10,12 +10,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { prisma } from "@/lib/prisma";
-import { requireSession } from "@/lib/session";
+import { requireSession, requireSection } from "@/lib/session";
 import { SupplierFormDialog } from "./supplier-form-dialog";
 import { DeleteSupplierButton } from "./delete-supplier-button";
 
 export default async function SuppliersPage() {
-  await requireSession();
+  const session = await requireSession();
+  await requireSection(session, "suppliers");
   const suppliers = await prisma.supplier.findMany({
     orderBy: { name: "asc" },
     include: { _count: { select: { materials: true, purchaseOrders: true } } },

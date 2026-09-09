@@ -8,14 +8,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { requireSession } from "@/lib/session";
+import { requireSession, requireSection } from "@/lib/session";
 import { getRevenueTrend, getTopProducts, getInventoryValue, getDeliveryStatusBreakdown } from "@/lib/analytics";
 import { formatMoney } from "@/lib/money";
 import { RevenueChart } from "@/components/dashboard/revenue-chart";
 import { deliveryStatusVariants } from "../deliveries/schema";
 
 export default async function ReportsPage() {
-  await requireSession();
+  const session = await requireSession();
+  await requireSection(session, "reports");
   const [revenueTrend, topProducts, inventoryValue, deliveryBreakdown] = await Promise.all([
     getRevenueTrend(12),
     getTopProducts(30),

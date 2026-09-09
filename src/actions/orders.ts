@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { prisma } from "@/lib/prisma";
-import { requireSession } from "@/lib/session";
+import { requireSession, requireSection } from "@/lib/session";
 import { Prisma } from "@/generated/prisma/client";
 
 const orderSchema = z.object({
@@ -22,6 +22,7 @@ export type OrderInput = z.infer<typeof orderSchema>;
 
 export async function createOrder(input: OrderInput) {
   const session = await requireSession();
+  await requireSection(session, "orders");
   const data = orderSchema.parse(input);
 
   if (data.needsDelivery && !data.deliveryAddress?.trim()) {
@@ -92,21 +93,24 @@ export async function createOrder(input: OrderInput) {
 }
 
 export async function confirmOrder(id: string) {
-  await requireSession();
+  const session = await requireSession();
+  await requireSection(session, "orders");
   await prisma.order.update({ where: { id }, data: { status: "CONFIRMED" } });
   revalidatePath("/dashboard/orders");
   revalidatePath(`/dashboard/orders/${id}`);
 }
 
 export async function fulfillOrder(id: string) {
-  await requireSession();
+  const session = await requireSession();
+  await requireSection(session, "orders");
   await prisma.order.update({ where: { id }, data: { status: "FULFILLED" } });
   revalidatePath("/dashboard/orders");
   revalidatePath(`/dashboard/orders/${id}`);
 }
 
 export async function cancelOrder(id: string) {
-  await requireSession();
+  const session = await requireSession();
+  await requireSection(session, "orders");
 
   await prisma.$transaction(async (tx) => {
     const order = await tx.order.findUniqueOrThrow({

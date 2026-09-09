@@ -11,10 +11,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { prisma } from "@/lib/prisma";
-import { requireSession } from "@/lib/session";
+import { requireSession, requireSection } from "@/lib/session";
 
 export default async function RecipesPage() {
-  await requireSession();
+  const session = await requireSession();
+  await requireSection(session, "recipes");
   const products = await prisma.finishedProduct.findMany({
     where: { isActive: true },
     orderBy: { name: "asc" },

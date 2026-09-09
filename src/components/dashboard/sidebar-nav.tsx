@@ -23,26 +23,35 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 
 const navItems = [
-  { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
-  { href: "/dashboard/suppliers", label: "Suppliers", icon: Truck },
-  { href: "/dashboard/materials", label: "Materials", icon: Beaker },
-  { href: "/dashboard/purchase-orders", label: "Purchase orders", icon: ClipboardList },
-  { href: "/dashboard/products", label: "Products", icon: Package },
-  { href: "/dashboard/recipes", label: "Recipes", icon: FlaskConical },
-  { href: "/dashboard/production", label: "Production", icon: Factory },
-  { href: "/dashboard/customers", label: "Customers", icon: Users },
-  { href: "/dashboard/orders", label: "Orders", icon: ShoppingCart },
-  { href: "/dashboard/deliveries", label: "Deliveries", icon: MapPinned },
-  { href: "/dashboard/invoices", label: "Invoices", icon: Receipt },
-  { href: "/dashboard/reports", label: "Reports", icon: BarChart3 },
+  { href: "/dashboard", label: "Overview", icon: LayoutDashboard, key: null },
+  { href: "/dashboard/suppliers", label: "Suppliers", icon: Truck, key: "suppliers" },
+  { href: "/dashboard/materials", label: "Materials", icon: Beaker, key: "materials" },
+  { href: "/dashboard/purchase-orders", label: "Purchase orders", icon: ClipboardList, key: "purchase-orders" },
+  { href: "/dashboard/products", label: "Products", icon: Package, key: "products" },
+  { href: "/dashboard/recipes", label: "Recipes", icon: FlaskConical, key: "recipes" },
+  { href: "/dashboard/production", label: "Production", icon: Factory, key: "production" },
+  { href: "/dashboard/customers", label: "Customers", icon: Users, key: "customers" },
+  { href: "/dashboard/orders", label: "Orders", icon: ShoppingCart, key: "orders" },
+  { href: "/dashboard/deliveries", label: "Deliveries", icon: MapPinned, key: "deliveries" },
+  { href: "/dashboard/invoices", label: "Invoices", icon: Receipt, key: "invoices" },
+  { href: "/dashboard/reports", label: "Reports", icon: BarChart3, key: "reports" },
 ];
 
-export function SidebarNav({ isOwner }: { isOwner: boolean }) {
+export function SidebarNav({
+  isAdmin,
+  allowedSections,
+}: {
+  isAdmin: boolean;
+  allowedSections: string[];
+}) {
   const pathname = usePathname();
+  const visibleItems = navItems.filter(
+    (item) => isAdmin || item.key === null || allowedSections.includes(item.key)
+  );
 
   return (
     <nav className="flex flex-1 flex-col gap-1 overflow-y-auto p-3">
-      {navItems.map((item) => {
+      {visibleItems.map((item) => {
         const active =
           item.href === "/dashboard" ? pathname === item.href : pathname.startsWith(item.href);
         const Icon = item.icon;
@@ -76,7 +85,7 @@ export function SidebarNav({ isOwner }: { isOwner: boolean }) {
           SMS Campaigns
         </div>
       </div>
-      {isOwner && (
+      {isAdmin && (
         <Link
           href="/dashboard/settings/business"
           className={cn(

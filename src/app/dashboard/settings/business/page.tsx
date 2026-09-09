@@ -1,10 +1,10 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { requireOwner } from "@/lib/session";
+import { requireAdmin } from "@/lib/session";
 import { getBusinessProfile } from "@/actions/business";
 import { BusinessForm } from "./business-form";
 
 export default async function BusinessSettingsPage() {
-  await requireOwner();
+  await requireAdmin();
   const profile = await getBusinessProfile();
 
   return (

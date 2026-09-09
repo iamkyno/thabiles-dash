@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { prisma } from "@/lib/prisma";
-import { requireSession } from "@/lib/session";
+import { requireSession, requireSection } from "@/lib/session";
 
 const supplierSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -18,7 +18,8 @@ const supplierSchema = z.object({
 export type SupplierInput = z.infer<typeof supplierSchema>;
 
 export async function createSupplier(input: SupplierInput) {
-  await requireSession();
+  const session = await requireSession();
+  await requireSection(session, "suppliers");
   const data = supplierSchema.parse(input);
   const supplier = await prisma.supplier.create({ data: { ...data, email: data.email || undefined } });
   revalidatePath("/dashboard/suppliers");
@@ -26,7 +27,8 @@ export async function createSupplier(input: SupplierInput) {
 }
 
 export async function updateSupplier(id: string, input: SupplierInput) {
-  await requireSession();
+  const session = await requireSession();
+  await requireSection(session, "suppliers");
   const data = supplierSchema.parse(input);
   await prisma.supplier.update({ where: { id }, data: { ...data, email: data.email || undefined } });
   revalidatePath("/dashboard/suppliers");
@@ -34,7 +36,8 @@ export async function updateSupplier(id: string, input: SupplierInput) {
 }
 
 export async function deleteSupplier(id: string) {
-  await requireSession();
+  const session = await requireSession();
+  await requireSection(session, "suppliers");
   await prisma.supplier.delete({ where: { id } });
   revalidatePath("/dashboard/suppliers");
 }

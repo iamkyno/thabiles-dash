@@ -2,20 +2,29 @@ import "dotenv/config";
 
 import { prisma } from "../src/lib/prisma";
 import { auth } from "../src/lib/auth";
+import { APP_SECTIONS } from "../src/lib/sections";
 
 const DEV_PASSWORD = "ChangeMe123!";
+const ALL_SECTIONS = APP_SECTIONS.map((s) => s.key);
 
 async function upsertAuthUser(params: {
   name: string;
   email: string;
-  role: "OWNER" | "STAFF";
+  role: "ADMIN" | "DEVELOPER" | "STAFF";
   phone?: string;
+  allowedSections?: string[];
 }) {
+  const allowedSections = params.allowedSections ?? [];
   const existing = await prisma.user.findUnique({ where: { email: params.email } });
   if (existing) {
     return prisma.user.update({
       where: { id: existing.id },
-      data: { role: params.role, phone: params.phone },
+      data: {
+        role: params.role,
+        phone: params.phone,
+        approvalStatus: "APPROVED",
+        allowedSections,
+      },
     });
   }
 
@@ -25,7 +34,13 @@ async function upsertAuthUser(params: {
 
   return prisma.user.update({
     where: { id: result.user.id },
-    data: { role: params.role, phone: params.phone, emailVerified: true },
+    data: {
+      role: params.role,
+      phone: params.phone,
+      emailVerified: true,
+      approvalStatus: "APPROVED",
+      allowedSections,
+    },
   });
 }
 
@@ -45,8 +60,15 @@ async function main() {
   const owner = await upsertAuthUser({
     name: "Thabile",
     email: "owner@thabilesnaturals.test",
-    role: "OWNER",
+    role: "ADMIN",
     phone: "+27 71 500 0001",
+  });
+
+  await upsertAuthUser({
+    name: "Developer",
+    email: "developer@thabilesnaturals.test",
+    role: "DEVELOPER",
+    phone: "+27 71 500 0000",
   });
 
   await upsertAuthUser({
@@ -54,6 +76,7 @@ async function main() {
     email: "sipho@thabilesnaturals.test",
     role: "STAFF",
     phone: "+27 71 500 0002",
+    allowedSections: ALL_SECTIONS,
   });
 
   await upsertAuthUser({
@@ -61,6 +84,7 @@ async function main() {
     email: "nomvula@thabilesnaturals.test",
     role: "STAFF",
     phone: "+27 71 500 0003",
+    allowedSections: ALL_SECTIONS,
   });
 
   const suppliers = await Promise.all(
@@ -176,7 +200,8 @@ async function main() {
   );
 
   console.log("Seed complete.");
-  console.log(`Owner login: owner@thabilesnaturals.test / ${DEV_PASSWORD}`);
+  console.log(`Admin login: owner@thabilesnaturals.test / ${DEV_PASSWORD}`);
+  console.log(`Developer login: developer@thabilesnaturals.test / ${DEV_PASSWORD}`);
   console.log(`Staff login: sipho@thabilesnaturals.test / ${DEV_PASSWORD}`);
   void owner;
   void recipe;

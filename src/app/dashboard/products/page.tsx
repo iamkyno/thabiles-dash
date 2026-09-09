@@ -11,13 +11,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { prisma } from "@/lib/prisma";
-import { requireSession } from "@/lib/session";
+import { requireSession, requireSection } from "@/lib/session";
 import { formatMoney } from "@/lib/money";
 import { ProductFormDialog } from "./product-form-dialog";
 import { DeactivateProductButton } from "./deactivate-product-button";
 
 export default async function ProductsPage() {
-  await requireSession();
+  const session = await requireSession();
+  await requireSection(session, "products");
   const products = await prisma.finishedProduct.findMany({
     orderBy: { name: "asc" },
     include: { recipe: true },

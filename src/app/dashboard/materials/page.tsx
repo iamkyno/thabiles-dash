@@ -9,14 +9,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { prisma } from "@/lib/prisma";
-import { requireSession } from "@/lib/session";
+import { requireSession, requireSection } from "@/lib/session";
 import { formatMoney } from "@/lib/money";
 import { MaterialFormDialog } from "./material-form-dialog";
 import { DeactivateMaterialButton } from "./deactivate-material-button";
 import { materialTypeLabels, unitLabels } from "./schema";
 
 export default async function MaterialsPage() {
-  await requireSession();
+  const session = await requireSession();
+  await requireSection(session, "materials");
   const [materials, suppliers] = await Promise.all([
     prisma.material.findMany({ orderBy: { name: "asc" }, include: { primarySupplier: true } }),
     prisma.supplier.findMany({ orderBy: { name: "asc" } }),

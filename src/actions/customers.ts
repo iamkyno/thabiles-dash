@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { prisma } from "@/lib/prisma";
-import { requireSession } from "@/lib/session";
+import { requireSession, requireSection } from "@/lib/session";
 
 const customerSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -18,7 +18,8 @@ const customerSchema = z.object({
 export type CustomerInput = z.infer<typeof customerSchema>;
 
 export async function createCustomer(input: CustomerInput) {
-  await requireSession();
+  const session = await requireSession();
+  await requireSection(session, "customers");
   const data = customerSchema.parse(input);
   const customer = await prisma.customer.create({ data: { ...data, email: data.email || undefined } });
   revalidatePath("/dashboard/customers");
@@ -26,7 +27,8 @@ export async function createCustomer(input: CustomerInput) {
 }
 
 export async function updateCustomer(id: string, input: CustomerInput) {
-  await requireSession();
+  const session = await requireSession();
+  await requireSection(session, "customers");
   const data = customerSchema.parse(input);
   await prisma.customer.update({ where: { id }, data: { ...data, email: data.email || undefined } });
   revalidatePath("/dashboard/customers");
@@ -34,7 +36,8 @@ export async function updateCustomer(id: string, input: CustomerInput) {
 }
 
 export async function deleteCustomer(id: string) {
-  await requireSession();
+  const session = await requireSession();
+  await requireSection(session, "customers");
   await prisma.customer.delete({ where: { id } });
   revalidatePath("/dashboard/customers");
 }

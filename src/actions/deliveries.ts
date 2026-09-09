@@ -4,12 +4,13 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { prisma } from "@/lib/prisma";
-import { requireSession } from "@/lib/session";
+import { requireSession, requireSection } from "@/lib/session";
 
 const statusSchema = z.enum(["PENDING", "IN_TRANSIT", "DELIVERED", "FAILED"]);
 
 export async function updateDeliveryStatus(id: string, status: z.infer<typeof statusSchema>) {
-  await requireSession();
+  const session = await requireSession();
+  await requireSection(session, "deliveries");
   const nextStatus = statusSchema.parse(status);
 
   await prisma.delivery.update({
@@ -32,7 +33,8 @@ const detailsSchema = z.object({
 });
 
 export async function updateDeliveryDetails(id: string, input: z.infer<typeof detailsSchema>) {
-  await requireSession();
+  const session = await requireSession();
+  await requireSection(session, "deliveries");
   const data = detailsSchema.parse(input);
   await prisma.delivery.update({ where: { id }, data });
   revalidatePath(`/dashboard/deliveries/${id}`);

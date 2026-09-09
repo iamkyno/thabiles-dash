@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 
 import { authClient } from "@/lib/auth-client";
@@ -20,38 +20,52 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 
-const loginSchema = z.object({
-  email: z.string().email("Enter a valid email address"),
-  password: z.string().min(1, "Password is required"),
-});
+const schema = z
+  .object({
+    newPassword: z.string().min(8, "Password must be at least 8 characters"),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  });
 
-export function LoginForm() {
+export function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const token = searchParams.get("token");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const form = useForm<z.infer<typeof loginSchema>>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: { email: "", password: "" },
+  const form = useForm<z.infer<typeof schema>>({
+    resolver: zodResolver(schema),
+    defaultValues: { newPassword: "", confirmPassword: "" },
   });
 
-  async function onSubmit(values: z.infer<typeof loginSchema>) {
+  async function onSubmit(values: z.infer<typeof schema>) {
+    if (!token) {
+      setError("This reset link is invalid or has expired.");
+      return;
+    }
     setSubmitting(true);
     setError(null);
-    const { error: signInError } = await authClient.signIn.email({
-      email: values.email,
-      password: values.password,
+    const { error: resetError } = await authClient.resetPassword({
+      newPassword: values.newPassword,
+      token,
     });
     setSubmitting(false);
 
-    if (signInError) {
-      setError(signInError.message ?? "Invalid email or password");
+    if (resetError) {
+      setError(resetError.message ?? "Failed to reset password");
       return;
     }
 
-    router.push(searchParams.get("next") || "/dashboard");
-    router.refresh();
+    toast.success("Password reset — sign in with your new password");
+    router.push("/login");
+  }
+
+  if (!token) {
+    return <p className="text-sm text-destructive">This reset link is invalid or has expired.</p>;
   }
 
   return (
@@ -59,12 +73,12 @@ export function LoginForm() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
-          name="email"
+          name="newPassword"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>New password</FormLabel>
               <FormControl>
-                <Input type="email" placeholder="you@studio.com" autoComplete="email" {...field} />
+                <Input type="password" autoComplete="new-password" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -72,12 +86,12 @@ export function LoginForm() {
         />
         <FormField
           control={form.control}
-          name="password"
+          name="confirmPassword"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Password</FormLabel>
+              <FormLabel>Confirm password</FormLabel>
               <FormControl>
-                <Input type="password" autoComplete="current-password" {...field} />
+                <Input type="password" autoComplete="new-password" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -86,16 +100,8 @@ export function LoginForm() {
         {error && <p className="text-sm text-destructive">{error}</p>}
         <Button type="submit" className="w-full" disabled={submitting}>
           {submitting && <Loader2 className="animate-spin" />}
-          Sign in
+          Reset password
         </Button>
-        <div className="flex justify-between text-sm text-muted-foreground">
-          <Link href="/forgot-password" className="underline">
-            Forgot password?
-          </Link>
-          <Link href="/register" className="underline">
-            Create an account
-          </Link>
-        </div>
       </form>
     </Form>
   );

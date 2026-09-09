@@ -10,12 +10,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { prisma } from "@/lib/prisma";
-import { requireSession } from "@/lib/session";
+import { requireSession, requireSection } from "@/lib/session";
 import { CustomerFormDialog } from "./customer-form-dialog";
 import { DeleteCustomerButton } from "./delete-customer-button";
 
 export default async function CustomersPage() {
-  await requireSession();
+  const session = await requireSession();
+  await requireSection(session, "customers");
   const customers = await prisma.customer.findMany({
     orderBy: { name: "asc" },
     include: { _count: { select: { orders: true } } },

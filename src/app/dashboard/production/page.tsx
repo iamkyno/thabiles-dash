@@ -13,13 +13,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { prisma } from "@/lib/prisma";
-import { requireSession } from "@/lib/session";
+import { requireSession, requireSection } from "@/lib/session";
 import { formatDateTime } from "@/lib/tz";
 import { formatMoney } from "@/lib/money";
 import { batchStatusVariants } from "./schema";
 
 export default async function ProductionPage() {
-  await requireSession();
+  const session = await requireSession();
+  await requireSection(session, "production");
   const batches = await prisma.productionBatch.findMany({
     orderBy: { createdAt: "desc" },
     include: { product: true },

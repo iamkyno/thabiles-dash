@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { prisma } from "@/lib/prisma";
-import { requireSession } from "@/lib/session";
+import { requireSession, requireSection } from "@/lib/session";
 import { Prisma } from "@/generated/prisma/client";
 
 const poSchema = z.object({
@@ -24,6 +24,7 @@ export type PurchaseOrderInput = z.infer<typeof poSchema>;
 
 export async function createPurchaseOrder(input: PurchaseOrderInput) {
   const session = await requireSession();
+  await requireSection(session, "purchase-orders");
   const data = poSchema.parse(input);
 
   const lineItems = data.items.map((i) => {
@@ -55,7 +56,8 @@ export async function createPurchaseOrder(input: PurchaseOrderInput) {
 }
 
 export async function cancelPurchaseOrder(id: string) {
-  await requireSession();
+  const session = await requireSession();
+  await requireSection(session, "purchase-orders");
   const po = await prisma.purchaseOrder.findUniqueOrThrow({ where: { id } });
   if (po.status === "RECEIVED" || po.status === "PARTIALLY_RECEIVED") {
     throw new Error("Cannot cancel a purchase order that has already been received");
@@ -70,7 +72,8 @@ const receiveSchema = z.object({
 });
 
 export async function receivePurchaseOrder(poId: string, input: z.infer<typeof receiveSchema>) {
-  await requireSession();
+  const session = await requireSession();
+  await requireSection(session, "purchase-orders");
   const data = receiveSchema.parse(input);
 
   await prisma.$transaction(async (tx) => {

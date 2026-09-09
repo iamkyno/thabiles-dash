@@ -13,13 +13,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { prisma } from "@/lib/prisma";
-import { requireSession } from "@/lib/session";
+import { requireSession, requireSection } from "@/lib/session";
 import { formatMoney } from "@/lib/money";
 import { formatDate } from "@/lib/tz";
 import { poStatusVariants } from "./schema";
 
 export default async function PurchaseOrdersPage() {
-  await requireSession();
+  const session = await requireSession();
+  await requireSection(session, "purchase-orders");
   const orders = await prisma.purchaseOrder.findMany({
     orderBy: { createdAt: "desc" },
     include: { supplier: true },

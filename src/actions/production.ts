@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { prisma } from "@/lib/prisma";
-import { requireSession } from "@/lib/session";
+import { requireSession, requireSection } from "@/lib/session";
 import { Prisma } from "@/generated/prisma/client";
 
 const createSchema = z.object({
@@ -14,6 +14,7 @@ const createSchema = z.object({
 
 export async function createProductionBatch(input: z.infer<typeof createSchema>) {
   const session = await requireSession();
+  await requireSection(session, "production");
   const data = createSchema.parse(input);
 
   const recipe = await prisma.recipe.findUnique({ where: { productId: data.productId } });
@@ -34,7 +35,8 @@ export async function createProductionBatch(input: z.infer<typeof createSchema>)
 }
 
 export async function startProductionBatch(id: string) {
-  await requireSession();
+  const session = await requireSession();
+  await requireSection(session, "production");
   const batch = await prisma.productionBatch.findUniqueOrThrow({ where: { id } });
   if (batch.status !== "PLANNED") throw new Error("Only planned batches can be started");
   await prisma.productionBatch.update({
@@ -46,7 +48,8 @@ export async function startProductionBatch(id: string) {
 }
 
 export async function cancelProductionBatch(id: string) {
-  await requireSession();
+  const session = await requireSession();
+  await requireSection(session, "production");
   const batch = await prisma.productionBatch.findUniqueOrThrow({ where: { id } });
   if (batch.status === "COMPLETED" || batch.status === "CANCELLED") {
     throw new Error("This batch can no longer be cancelled");
@@ -59,7 +62,8 @@ export async function cancelProductionBatch(id: string) {
 const completeSchema = z.object({ actualQty: z.number().int().positive() });
 
 export async function completeProductionBatch(id: string, input: z.infer<typeof completeSchema>) {
-  await requireSession();
+  const session = await requireSession();
+  await requireSection(session, "production");
   const data = completeSchema.parse(input);
 
   await prisma.$transaction(async (tx) => {

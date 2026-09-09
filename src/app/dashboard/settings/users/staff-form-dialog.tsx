@@ -8,8 +8,11 @@ import { toast } from "sonner";
 import { Loader2, Plus } from "lucide-react";
 
 import { createStaffUser } from "@/actions/users";
+import { APP_SECTIONS } from "@/lib/sections";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -38,7 +41,8 @@ const schema = z.object({
   name: z.string().min(1, "Name is required"),
   email: z.string().email("Enter a valid email address"),
   password: z.string().min(8, "Password must be at least 8 characters"),
-  role: z.enum(["OWNER", "STAFF"]),
+  role: z.enum(["ADMIN", "STAFF"]),
+  allowedSections: z.array(z.string()),
 });
 
 export function StaffFormDialog() {
@@ -47,8 +51,11 @@ export function StaffFormDialog() {
 
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
-    defaultValues: { name: "", email: "", password: "", role: "STAFF" },
+    defaultValues: { name: "", email: "", password: "", role: "STAFF", allowedSections: [] },
   });
+
+  const role = form.watch("role");
+  const allowedSections = form.watch("allowedSections");
 
   async function onSubmit(values: z.infer<typeof schema>) {
     setSubmitting(true);
@@ -130,13 +137,43 @@ export function StaffFormDialog() {
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="STAFF">Staff</SelectItem>
-                      <SelectItem value="OWNER">Owner</SelectItem>
+                      <SelectItem value="ADMIN">Admin</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
+            {role === "STAFF" && (
+              <div className="space-y-2">
+                <Label>Access</Label>
+                <p className="text-xs text-muted-foreground">
+                  Choose which parts of the dashboard this person can use.
+                </p>
+                <div className="grid grid-cols-2 gap-2 rounded-md border p-3">
+                  {APP_SECTIONS.map((section) => {
+                    const checked = allowedSections.includes(section.key);
+                    return (
+                      <label
+                        key={section.key}
+                        className="flex items-center gap-2 text-sm"
+                      >
+                        <Checkbox
+                          checked={checked}
+                          onCheckedChange={(value) => {
+                            const next = value
+                              ? [...allowedSections, section.key]
+                              : allowedSections.filter((k) => k !== section.key);
+                            form.setValue("allowedSections", next);
+                          }}
+                        />
+                        {section.label}
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
             <DialogFooter>
               <Button type="submit" disabled={submitting}>
                 {submitting && <Loader2 className="animate-spin" />}

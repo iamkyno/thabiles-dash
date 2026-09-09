@@ -7,7 +7,8 @@ import { MobileNav } from "@/components/dashboard/mobile-nav";
 
 export default async function DashboardLayout({ children }: LayoutProps<"/dashboard">) {
   const session = await requireSession();
-  const isOwner = session.user.role === "OWNER";
+  const isAdmin = session.user.role === "ADMIN" || session.user.role === "DEVELOPER";
+  const allowedSections = (session.user.allowedSections ?? []) as string[];
 
   return (
     <div className="flex min-h-screen">
@@ -17,7 +18,7 @@ export default async function DashboardLayout({ children }: LayoutProps<"/dashbo
             TSC-Thabiles Skin Care
           </Link>
         </div>
-        <SidebarNav isOwner={isOwner} />
+        <SidebarNav isAdmin={isAdmin} allowedSections={allowedSections} />
         <div className="border-t p-2">
           <UserMenu name={session.user.name} email={session.user.email} role={session.user.role ?? "STAFF"} />
         </div>
@@ -25,7 +26,13 @@ export default async function DashboardLayout({ children }: LayoutProps<"/dashbo
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="no-print flex h-14 items-center gap-3 border-b px-4 md:hidden">
-          <MobileNav isOwner={isOwner} userName={session.user.name} userEmail={session.user.email} userRole={session.user.role ?? "STAFF"} />
+          <MobileNav
+            isAdmin={isAdmin}
+            allowedSections={allowedSections}
+            userName={session.user.name}
+            userEmail={session.user.email}
+            userRole={session.user.role ?? "STAFF"}
+          />
           <span className="font-semibold">TSC-Thabiles Skin Care</span>
         </header>
         <main className="flex-1 bg-muted/20 p-4 md:p-6">{children}</main>

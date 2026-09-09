@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { prisma } from "@/lib/prisma";
-import { requireSession } from "@/lib/session";
+import { requireSession, requireSection } from "@/lib/session";
 
 const recipeSchema = z.object({
   yieldQuantity: z.number().int().positive("Yield must be at least 1"),
@@ -22,7 +22,8 @@ const recipeSchema = z.object({
 export type RecipeInput = z.infer<typeof recipeSchema>;
 
 export async function saveRecipe(productId: string, input: RecipeInput) {
-  await requireSession();
+  const session = await requireSession();
+  await requireSection(session, "recipes");
   const data = recipeSchema.parse(input);
 
   await prisma.$transaction(async (tx) => {

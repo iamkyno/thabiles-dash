@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { prisma } from "@/lib/prisma";
-import { requireOwner } from "@/lib/session";
+import { requireAdmin } from "@/lib/session";
 
 const businessProfileSchema = z.object({
   businessName: z.string().min(1, "Business name is required"),
@@ -18,7 +18,7 @@ const businessProfileSchema = z.object({
 export type BusinessProfileInput = z.infer<typeof businessProfileSchema>;
 
 export async function updateBusinessProfile(input: BusinessProfileInput) {
-  await requireOwner();
+  await requireAdmin();
   const data = businessProfileSchema.parse(input);
 
   await prisma.businessProfile.upsert({

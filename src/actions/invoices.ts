@@ -4,10 +4,11 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { prisma } from "@/lib/prisma";
-import { requireSession } from "@/lib/session";
+import { requireSession, requireSection } from "@/lib/session";
 
 export async function generateInvoice(orderId: string) {
-  await requireSession();
+  const session = await requireSession();
+  await requireSection(session, "invoices");
   const order = await prisma.order.findUniqueOrThrow({ where: { id: orderId }, include: { invoice: true } });
   if (order.invoice) return { id: order.invoice.id };
 
@@ -43,6 +44,7 @@ export type PaymentInput = z.infer<typeof paymentSchema>;
 
 export async function recordPayment(invoiceId: string, input: PaymentInput) {
   const session = await requireSession();
+  await requireSection(session, "invoices");
   const data = paymentSchema.parse(input);
 
   await prisma.$transaction(async (tx) => {
@@ -71,7 +73,8 @@ export async function recordPayment(invoiceId: string, input: PaymentInput) {
 }
 
 export async function voidInvoice(invoiceId: string) {
-  await requireSession();
+  const session = await requireSession();
+  await requireSection(session, "invoices");
   await prisma.invoice.update({ where: { id: invoiceId }, data: { status: "VOID" } });
   revalidatePath(`/dashboard/invoices/${invoiceId}`);
   revalidatePath("/dashboard/invoices");

@@ -11,12 +11,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { prisma } from "@/lib/prisma";
-import { requireSession } from "@/lib/session";
+import { requireSession, requireSection } from "@/lib/session";
 import { formatDate } from "@/lib/tz";
 import { deliveryStatusVariants } from "./schema";
 
 export default async function DeliveriesPage() {
-  await requireSession();
+  const session = await requireSession();
+  await requireSection(session, "deliveries");
   const deliveries = await prisma.delivery.findMany({
     orderBy: { createdAt: "desc" },
     include: { customer: true, order: true },

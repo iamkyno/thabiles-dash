@@ -11,13 +11,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { prisma } from "@/lib/prisma";
-import { requireSession } from "@/lib/session";
+import { requireSession, requireSection } from "@/lib/session";
 import { formatMoney } from "@/lib/money";
 import { formatDate } from "@/lib/tz";
 import { invoiceStatusVariants } from "./schema";
 
 export default async function InvoicesPage() {
-  await requireSession();
+  const session = await requireSession();
+  await requireSection(session, "invoices");
   const invoices = await prisma.invoice.findMany({
     orderBy: { createdAt: "desc" },
     include: { customer: true },
