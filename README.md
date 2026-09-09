@@ -34,7 +34,9 @@ A management dashboard for a natural beauty products manufacturer: suppliers, ra
 
 ## Deploying
 
-Point `DATABASE_URL` at your production MySQL/MariaDB database (e.g. PlanetScale, AWS RDS, Aiven, or a self-hosted MariaDB), set a strong `BETTER_AUTH_SECRET`, and set `BETTER_AUTH_URL`/`NEXT_PUBLIC_BETTER_AUTH_URL` to your production URL. Run `npx prisma migrate deploy` as part of your deploy step. If your host doesn't support foreign key constraints (e.g. PlanetScale), add `relationMode = "prisma"` to the `datasource` block in `prisma/schema.prisma`.
+Point `DATABASE_URL` at your production MySQL/MariaDB database (e.g. PlanetScale, AWS RDS, Aiven, or a self-hosted MariaDB), set a strong `BETTER_AUTH_SECRET`, and set `BETTER_AUTH_URL`/`NEXT_PUBLIC_BETTER_AUTH_URL` to your production URL. If your host doesn't support foreign key constraints (e.g. PlanetScale), add `relationMode = "prisma"` to the `datasource` block in `prisma/schema.prisma`.
+
+`npm run build` runs `prisma generate` (via `postinstall`), applies pending migrations with `prisma migrate deploy` (via `prebuild`), then runs the seed script (via `postbuild`) — so a plain `npm install && npm run build` deploy step (e.g. on Render, with the build command `npm install; npm run build`) migrates and seeds the database automatically. The seed script is idempotent (upsert-based), so it's safe to run on every deploy, not just the first.
 
 ## How the manufacturing flow fits together
 
