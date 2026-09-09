@@ -5,7 +5,7 @@ A management dashboard for a natural beauty products manufacturer: suppliers, ra
 ## Stack
 
 - Next.js 16 (App Router, TypeScript, Turbopack)
-- MySQL/MariaDB via Prisma ORM 7 (`@prisma/adapter-mariadb`)
+- PostgreSQL via Prisma ORM 7 (`@prisma/adapter-pg`)
 - Better Auth (email/password, `OWNER`/`STAFF` roles via the admin plugin)
 - Tailwind CSS v4 + hand-built shadcn-style UI primitives (`src/components/ui`) — the shadcn CLI's registry (`ui.shadcn.com`) isn't reachable from every environment, so components are vendored directly instead of fetched
 - react-hook-form + zod, recharts, sonner
@@ -16,7 +16,7 @@ A management dashboard for a natural beauty products manufacturer: suppliers, ra
    ```bash
    npm install
    ```
-2. Set up `.env` (see `.env` for the local defaults) with a `DATABASE_URL` pointing at a MySQL or MariaDB database (e.g. `mysql://user:password@localhost:3306/thabiles_dash`), plus `BETTER_AUTH_SECRET` and `BETTER_AUTH_URL`.
+2. Set up `.env` (see `.env` for the local defaults) with a `DATABASE_URL` pointing at a PostgreSQL database (e.g. `postgresql://user:password@localhost:5432/thabiles_dash`), plus `BETTER_AUTH_SECRET` and `BETTER_AUTH_URL`.
 3. Run migrations and generate the Prisma client:
    ```bash
    npx prisma migrate dev
@@ -34,7 +34,7 @@ A management dashboard for a natural beauty products manufacturer: suppliers, ra
 
 ## Deploying
 
-Point `DATABASE_URL` at your production MySQL/MariaDB database (e.g. PlanetScale, AWS RDS, Aiven, or a self-hosted MariaDB), set a strong `BETTER_AUTH_SECRET`, and set `BETTER_AUTH_URL`/`NEXT_PUBLIC_BETTER_AUTH_URL` to your production URL. If your host doesn't support foreign key constraints (e.g. PlanetScale), add `relationMode = "prisma"` to the `datasource` block in `prisma/schema.prisma`.
+Point `DATABASE_URL` at your production PostgreSQL database — Render's own managed Postgres service is the simplest option (create it in the Render dashboard, then paste its internal connection string into this app's `DATABASE_URL`), but any hosted Postgres (Neon, Supabase, RDS, etc.) works too. Set a strong `BETTER_AUTH_SECRET`, and set `BETTER_AUTH_URL`/`NEXT_PUBLIC_BETTER_AUTH_URL` to your production URL.
 
 `npm run build` runs `prisma generate` (via `postinstall`), applies pending migrations with `prisma migrate deploy` (via `prebuild`), then runs the seed script (via `postbuild`) — so a plain `npm install && npm run build` deploy step (e.g. on Render, with the build command `npm install; npm run build`) migrates and seeds the database automatically. The seed script is idempotent (upsert-based), so it's safe to run on every deploy, not just the first.
 
@@ -50,5 +50,4 @@ Point `DATABASE_URL` at your production MySQL/MariaDB database (e.g. PlanetScale
 ## Notes
 
 - Staff accounts are created by an `OWNER` from **Settings → Team** in the app — there is no public sign-up page.
-- Money is stored as `Decimal` in MySQL; `formatMoney`/date formatters in `src/lib` intentionally avoid locale-specific `Intl` formatting that isn't guaranteed to match between the Node SSR runtime and the browser (this caused real hydration mismatches during development of the sibling app for this same client).
-- Freeform text fields (notes, descriptions, recipe instructions) use `@db.Text` since MySQL's default `VARCHAR(191)` would silently truncate longer input.
+- Money is stored as `Decimal` in PostgreSQL; `formatMoney`/date formatters in `src/lib` intentionally avoid locale-specific `Intl` formatting that isn't guaranteed to match between the Node SSR runtime and the browser (this caused real hydration mismatches during development of the sibling app for this same client).
