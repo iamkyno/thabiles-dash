@@ -42,6 +42,3 @@ next-env.d.ts
 
 # prisma generated client
 /src/generated/prisma
-
-# neon
-.neon
