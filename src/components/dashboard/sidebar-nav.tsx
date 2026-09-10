@@ -16,6 +16,7 @@ import {
   Receipt,
   BarChart3,
   Settings,
+  UserCog,
   MessageSquare,
 } from "lucide-react";
 
@@ -86,18 +87,32 @@ export function SidebarNav({
         </div>
       </div>
       {isAdmin && (
-        <Link
-          href="/dashboard/settings/business"
-          className={cn(
-            "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-            pathname.startsWith("/dashboard/settings")
-              ? "bg-primary text-primary-foreground"
-              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-          )}
-        >
-          <Settings className="size-4 shrink-0" />
-          Settings
-        </Link>
+        <>
+          <Link
+            href="/dashboard/settings/business"
+            className={cn(
+              "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+              pathname.startsWith("/dashboard/settings/business")
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+            )}
+          >
+            <Settings className="size-4 shrink-0" />
+            Settings
+          </Link>
+          <Link
+            href="/dashboard/settings/users"
+            className={cn(
+              "flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+              pathname.startsWith("/dashboard/settings/users")
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+            )}
+          >
+            <UserCog className="size-4 shrink-0" />
+            Team
+          </Link>
+        </>
       )}
     </nav>
   );
