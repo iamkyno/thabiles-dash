@@ -47,10 +47,10 @@ export default async function InvoicesPage() {
                 <TableRow>
                   <TableHead>Invoice</TableHead>
                   <TableHead>Customer</TableHead>
-                  <TableHead>Issued</TableHead>
-                  <TableHead>Due</TableHead>
+                  <TableHead className="hidden sm:table-cell">Issued</TableHead>
+                  <TableHead className="hidden sm:table-cell">Due</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Balance</TableHead>
+                  <TableHead className="text-right whitespace-nowrap">Balance</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -62,16 +62,16 @@ export default async function InvoicesPage() {
                       </Link>
                     </TableCell>
                     <TableCell>{inv.customer.name}</TableCell>
-                    <TableCell className="text-muted-foreground">
+                    <TableCell className="hidden text-muted-foreground sm:table-cell">
                       {inv.issuedAt ? formatDate(inv.issuedAt) : "—"}
                     </TableCell>
-                    <TableCell className="text-muted-foreground">
+                    <TableCell className="hidden text-muted-foreground sm:table-cell">
                       {inv.dueAt ? formatDate(inv.dueAt) : "—"}
                     </TableCell>
                     <TableCell>
                       <Badge variant={invoiceStatusVariants[inv.status]}>{inv.status.replace("_", " ")}</Badge>
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right whitespace-nowrap">
                       {formatMoney(Number(inv.total) - Number(inv.amountPaid))}
                     </TableCell>
                   </TableRow>

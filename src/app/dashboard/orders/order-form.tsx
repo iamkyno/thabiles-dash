@@ -134,7 +134,7 @@ export function OrderForm({ customers, products }: { customers: Option[]; produc
                 </Button>
               </div>
               {itemFields.fields.map((f, index) => (
-                <div key={f.id} className="flex items-end gap-2">
+                <div key={f.id} className="flex flex-col gap-2 sm:flex-row sm:items-end">
                   <FormField
                     control={form.control}
                     name={`items.${index}.productId`}
@@ -158,12 +158,14 @@ export function OrderForm({ customers, products }: { customers: Option[]; produc
                       </FormItem>
                     )}
                   />
-                  <div className="w-24">
-                    <NumberField control={form.control} name={`items.${index}.quantity`} label="" min="1" />
+                  <div className="flex items-center gap-2">
+                    <div className="w-full sm:w-24">
+                      <NumberField control={form.control} name={`items.${index}.quantity`} label="" min="1" />
+                    </div>
+                    <Button type="button" variant="ghost" size="icon" onClick={() => itemFields.remove(index)}>
+                      <Trash2 className="text-destructive" />
+                    </Button>
                   </div>
-                  <Button type="button" variant="ghost" size="icon" onClick={() => itemFields.remove(index)}>
-                    <Trash2 className="text-destructive" />
-                  </Button>
                 </div>
               ))}
               {form.formState.errors.items?.message && (
@@ -171,7 +173,7 @@ export function OrderForm({ customers, products }: { customers: Option[]; produc
               )}
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <NumberField control={form.control} name="taxRatePercent" label="Tax rate (%)" step="0.01" />
               <NumberField control={form.control} name="discountTotal" label="Discount" step="0.01" />
             </div>

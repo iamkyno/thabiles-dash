@@ -60,19 +60,19 @@ export function ReceiveForm({ poId, items }: { poId: string; items: Item[] }) {
         <TableHeader>
           <TableRow>
             <TableHead>Material</TableHead>
-            <TableHead className="text-right">Ordered</TableHead>
-            <TableHead className="text-right">Already received</TableHead>
-            <TableHead className="text-right">Receive now</TableHead>
+            <TableHead className="text-right whitespace-nowrap">Ordered</TableHead>
+            <TableHead className="hidden text-right sm:table-cell">Already received</TableHead>
+            <TableHead className="text-right whitespace-nowrap">Receive now</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {items.map((item) => (
             <TableRow key={item.id}>
               <TableCell>{item.materialName}</TableCell>
-              <TableCell className="text-right">
+              <TableCell className="text-right whitespace-nowrap">
                 {item.quantityOrdered} {item.unit}
               </TableCell>
-              <TableCell className="text-right">
+              <TableCell className="hidden text-right sm:table-cell">
                 {item.quantityReceived} {item.unit}
               </TableCell>
               <TableCell className="text-right">

@@ -106,7 +106,7 @@ export function MaterialFormDialog({
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <FormField
                 control={form.control}
                 name="sku"
@@ -158,7 +158,7 @@ export function MaterialFormDialog({
                 </FormItem>
               )}
             />
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <FormField
                 control={form.control}
                 name="unit"
@@ -185,7 +185,7 @@ export function MaterialFormDialog({
               />
               <NumberField control={form.control} name="costPerUnit" label="Cost per unit" step="0.0001" />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <NumberField control={form.control} name="stockQty" label="Stock quantity" step="0.001" />
               <NumberField control={form.control} name="reorderLevel" label="Reorder level" step="0.001" />
             </div>

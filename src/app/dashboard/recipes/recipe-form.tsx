@@ -98,7 +98,7 @@ export function RecipeForm({
             const materialId = form.watch(`items.${index}.materialId`);
             const material = materials.find((m) => m.id === materialId);
             return (
-              <div key={f.id} className="flex items-end gap-2">
+              <div key={f.id} className="flex flex-col gap-2 sm:flex-row sm:items-end">
                 <FormField
                   control={form.control}
                   name={`items.${index}.materialId`}
@@ -122,18 +122,20 @@ export function RecipeForm({
                     </FormItem>
                   )}
                 />
-                <div className="w-28">
-                  <NumberField
-                    control={form.control}
-                    name={`items.${index}.quantityPerBatch`}
-                    label=""
-                    step="0.001"
-                  />
+                <div className="flex items-center gap-2">
+                  <div className="w-full sm:w-28">
+                    <NumberField
+                      control={form.control}
+                      name={`items.${index}.quantityPerBatch`}
+                      label=""
+                      step="0.001"
+                    />
+                  </div>
+                  {material && <span className="pb-2 text-sm text-muted-foreground">{material.unit}</span>}
+                  <Button type="button" variant="ghost" size="icon" onClick={() => itemFields.remove(index)}>
+                    <Trash2 className="text-destructive" />
+                  </Button>
                 </div>
-                {material && <span className="pb-2 text-sm text-muted-foreground">{material.unit}</span>}
-                <Button type="button" variant="ghost" size="icon" onClick={() => itemFields.remove(index)}>
-                  <Trash2 className="text-destructive" />
-                </Button>
               </div>
             );
           })}

@@ -1,8 +1,8 @@
 import * as React from "react";
 
-import { cn } from "@/lib/utils";
+import { cn, scrollFieldIntoView } from "@/lib/utils";
 
-function Input({ className, type, ...props }: React.ComponentProps<"input">) {
+function Input({ className, type, onFocus, ...props }: React.ComponentProps<"input">) {
   return (
     <input
       type={type}
@@ -15,6 +15,10 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
         "aria-invalid:border-destructive aria-invalid:ring-destructive/20",
         className
       )}
+      onFocus={(e) => {
+        onFocus?.(e);
+        scrollFieldIntoView(e.currentTarget);
+      }}
       {...props}
     />
   );

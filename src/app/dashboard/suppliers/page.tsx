@@ -46,9 +46,9 @@ export default async function SuppliersPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
-                  <TableHead>Contact</TableHead>
+                  <TableHead className="hidden sm:table-cell">Contact</TableHead>
                   <TableHead>Phone</TableHead>
-                  <TableHead>Materials</TableHead>
+                  <TableHead className="hidden sm:table-cell">Materials</TableHead>
                   <TableHead className="w-20" />
                 </TableRow>
               </TableHeader>
@@ -60,9 +60,9 @@ export default async function SuppliersPage() {
                         {supplier.name}
                       </Link>
                     </TableCell>
-                    <TableCell className="text-muted-foreground">{supplier.contactName || "—"}</TableCell>
-                    <TableCell className="text-muted-foreground">{supplier.phone || "—"}</TableCell>
-                    <TableCell>{supplier._count.materials}</TableCell>
+                    <TableCell className="hidden text-muted-foreground sm:table-cell">{supplier.contactName || "—"}</TableCell>
+                    <TableCell className="text-muted-foreground whitespace-nowrap">{supplier.phone || "—"}</TableCell>
+                    <TableCell className="hidden sm:table-cell">{supplier._count.materials}</TableCell>
                     <TableCell>
                       <div className="flex justify-end gap-1">
                         <SupplierFormDialog

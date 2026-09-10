@@ -46,9 +46,9 @@ export default async function DeliveriesPage() {
                 <TableRow>
                   <TableHead>Order</TableHead>
                   <TableHead>Customer</TableHead>
-                  <TableHead>Address</TableHead>
+                  <TableHead className="hidden sm:table-cell">Address</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Created</TableHead>
+                  <TableHead className="hidden sm:table-cell">Created</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -60,13 +60,13 @@ export default async function DeliveriesPage() {
                       </Link>
                     </TableCell>
                     <TableCell>{delivery.customer.name}</TableCell>
-                    <TableCell className="max-w-xs truncate text-muted-foreground">{delivery.address}</TableCell>
+                    <TableCell className="hidden max-w-xs text-muted-foreground sm:table-cell">{delivery.address}</TableCell>
                     <TableCell>
                       <Badge variant={deliveryStatusVariants[delivery.status]}>
                         {delivery.status.replace("_", " ")}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-muted-foreground">{formatDate(delivery.createdAt)}</TableCell>
+                    <TableCell className="hidden text-muted-foreground sm:table-cell">{formatDate(delivery.createdAt)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

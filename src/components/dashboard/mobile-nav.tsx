@@ -28,7 +28,10 @@ export function MobileNav({
       <Button variant="ghost" size="icon" onClick={() => setOpen(true)}>
         <Menu />
       </Button>
-      <DialogContent className="left-0 top-0 h-full max-h-full w-64 max-w-64 translate-x-0 translate-y-0 rounded-none border-r p-0 data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left">
+      <DialogContent
+        keyboardAware={false}
+        className="left-0 top-0 h-full max-h-full w-64 max-w-64 translate-x-0 translate-y-0 rounded-none border-r p-0 data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left"
+      >
         <DialogTitle className="sr-only">Navigation</DialogTitle>
         <div className="flex h-full flex-col" onClick={() => setOpen(false)}>
           <div className="flex h-14 items-center border-b px-4 font-semibold">

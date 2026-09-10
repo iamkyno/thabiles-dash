@@ -119,7 +119,7 @@ export function UserRowActions({
           <DialogHeader>
             <DialogTitle>Edit access</DialogTitle>
           </DialogHeader>
-          <div className="grid grid-cols-2 gap-2 rounded-md border p-3">
+          <div className="grid grid-cols-1 gap-2 rounded-md border p-3 sm:grid-cols-2">
             {APP_SECTIONS.map((section) => {
               const checked = sections.includes(section.key);
               return (

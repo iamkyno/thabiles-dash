@@ -1,8 +1,8 @@
 import * as React from "react";
 
-import { cn } from "@/lib/utils";
+import { cn, scrollFieldIntoView } from "@/lib/utils";
 
-function Textarea({ className, ...props }: React.ComponentProps<"textarea">) {
+function Textarea({ className, onFocus, ...props }: React.ComponentProps<"textarea">) {
   return (
     <textarea
       data-slot="textarea"
@@ -13,6 +13,10 @@ function Textarea({ className, ...props }: React.ComponentProps<"textarea">) {
         "disabled:cursor-not-allowed disabled:opacity-50",
         className
       )}
+      onFocus={(e) => {
+        onFocus?.(e);
+        scrollFieldIntoView(e.currentTarget);
+      }}
       {...props}
     />
   );

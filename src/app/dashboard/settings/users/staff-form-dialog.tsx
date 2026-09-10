@@ -150,7 +150,7 @@ export function StaffFormDialog() {
                 <p className="text-xs text-muted-foreground">
                   Choose which parts of the dashboard this person can use.
                 </p>
-                <div className="grid grid-cols-2 gap-2 rounded-md border p-3">
+                <div className="grid grid-cols-1 gap-2 rounded-md border p-3 sm:grid-cols-2">
                   {APP_SECTIONS.map((section) => {
                     const checked = allowedSections.includes(section.key);
                     return (

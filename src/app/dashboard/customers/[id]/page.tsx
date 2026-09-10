@@ -58,9 +58,9 @@ export default async function CustomerDetailPage({ params }: PageProps<"/dashboa
               <TableHeader>
                 <TableRow>
                   <TableHead>Order</TableHead>
-                  <TableHead>Date</TableHead>
+                  <TableHead className="hidden sm:table-cell">Date</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
+                  <TableHead className="text-right whitespace-nowrap">Total</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -71,11 +71,11 @@ export default async function CustomerDetailPage({ params }: PageProps<"/dashboa
                         #{order.orderSeq}
                       </Link>
                     </TableCell>
-                    <TableCell>{formatDate(order.createdAt)}</TableCell>
+                    <TableCell className="hidden whitespace-nowrap sm:table-cell">{formatDate(order.createdAt)}</TableCell>
                     <TableCell>
                       <Badge variant="secondary">{order.status}</Badge>
                     </TableCell>
-                    <TableCell className="text-right">{formatMoney(order.total)}</TableCell>
+                    <TableCell className="text-right whitespace-nowrap">{formatMoney(order.total)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

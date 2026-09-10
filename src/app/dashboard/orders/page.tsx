@@ -53,11 +53,11 @@ export default async function OrdersPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Order</TableHead>
-                  <TableHead>Date</TableHead>
+                  <TableHead className="hidden sm:table-cell">Date</TableHead>
                   <TableHead>Customer</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Delivery</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
+                  <TableHead className="hidden sm:table-cell">Delivery</TableHead>
+                  <TableHead className="text-right whitespace-nowrap">Total</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -68,15 +68,15 @@ export default async function OrdersPage() {
                         #{order.orderSeq}
                       </Link>
                     </TableCell>
-                    <TableCell className="text-muted-foreground">{formatDateTime(order.createdAt)}</TableCell>
+                    <TableCell className="hidden text-muted-foreground sm:table-cell">{formatDateTime(order.createdAt)}</TableCell>
                     <TableCell>{order.customer.name}</TableCell>
                     <TableCell>
                       <Badge variant={orderStatusVariants[order.status]}>{order.status}</Badge>
                     </TableCell>
-                    <TableCell className="text-muted-foreground">
+                    <TableCell className="hidden text-muted-foreground sm:table-cell">
                       {order.delivery ? order.delivery.status.replace("_", " ") : "—"}
                     </TableCell>
-                    <TableCell className="text-right">{formatMoney(order.total)}</TableCell>
+                    <TableCell className="text-right whitespace-nowrap">{formatMoney(order.total)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

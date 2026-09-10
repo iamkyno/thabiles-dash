@@ -54,11 +54,11 @@ export default async function ProductionPage() {
                 <TableRow>
                   <TableHead>Batch</TableHead>
                   <TableHead>Product</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead className="text-right">Planned</TableHead>
-                  <TableHead className="text-right">Actual</TableHead>
+                  <TableHead className="hidden sm:table-cell">Created</TableHead>
+                  <TableHead className="text-right whitespace-nowrap">Planned</TableHead>
+                  <TableHead className="text-right whitespace-nowrap">Actual</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Cost</TableHead>
+                  <TableHead className="hidden text-right sm:table-cell">Cost</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -70,13 +70,13 @@ export default async function ProductionPage() {
                       </Link>
                     </TableCell>
                     <TableCell>{batch.product.name}</TableCell>
-                    <TableCell className="text-muted-foreground">{formatDateTime(batch.createdAt)}</TableCell>
-                    <TableCell className="text-right">{batch.plannedQty}</TableCell>
-                    <TableCell className="text-right">{batch.actualQty ?? "—"}</TableCell>
+                    <TableCell className="hidden text-muted-foreground sm:table-cell">{formatDateTime(batch.createdAt)}</TableCell>
+                    <TableCell className="text-right whitespace-nowrap">{batch.plannedQty}</TableCell>
+                    <TableCell className="text-right whitespace-nowrap">{batch.actualQty ?? "—"}</TableCell>
                     <TableCell>
                       <Badge variant={batchStatusVariants[batch.status]}>{batch.status.replace("_", " ")}</Badge>
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="hidden text-right sm:table-cell">
                       {batch.totalCost ? formatMoney(batch.totalCost) : "—"}
                     </TableCell>
                   </TableRow>

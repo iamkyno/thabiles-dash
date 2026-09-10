@@ -65,24 +65,24 @@ export default async function PurchaseOrderDetailPage({
             <TableHeader>
               <TableRow>
                 <TableHead>Material</TableHead>
-                <TableHead className="text-right">Ordered</TableHead>
-                <TableHead className="text-right">Received</TableHead>
-                <TableHead className="text-right">Unit cost</TableHead>
-                <TableHead className="text-right">Total</TableHead>
+                <TableHead className="text-right whitespace-nowrap">Ordered</TableHead>
+                <TableHead className="hidden text-right whitespace-nowrap sm:table-cell">Received</TableHead>
+                <TableHead className="hidden text-right whitespace-nowrap sm:table-cell">Unit cost</TableHead>
+                <TableHead className="text-right whitespace-nowrap">Total</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {po.items.map((item) => (
                 <TableRow key={item.id}>
                   <TableCell>{item.material.name}</TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="text-right whitespace-nowrap">
                     {item.quantityOrdered.toString()} {item.material.unit}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="hidden text-right whitespace-nowrap sm:table-cell">
                     {item.quantityReceived.toString()} {item.material.unit}
                   </TableCell>
-                  <TableCell className="text-right">{formatMoney(item.unitCost)}</TableCell>
-                  <TableCell className="text-right">{formatMoney(item.lineTotal)}</TableCell>
+                  <TableCell className="hidden text-right whitespace-nowrap sm:table-cell">{formatMoney(item.unitCost)}</TableCell>
+                  <TableCell className="text-right whitespace-nowrap">{formatMoney(item.lineTotal)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

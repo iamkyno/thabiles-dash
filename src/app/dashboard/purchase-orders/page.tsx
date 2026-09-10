@@ -54,9 +54,9 @@ export default async function PurchaseOrdersPage() {
                 <TableRow>
                   <TableHead>PO</TableHead>
                   <TableHead>Supplier</TableHead>
-                  <TableHead>Date</TableHead>
+                  <TableHead className="hidden sm:table-cell">Date</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
+                  <TableHead className="text-right whitespace-nowrap">Total</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -68,11 +68,11 @@ export default async function PurchaseOrdersPage() {
                       </Link>
                     </TableCell>
                     <TableCell>{po.supplier.name}</TableCell>
-                    <TableCell className="text-muted-foreground">{formatDate(po.createdAt)}</TableCell>
+                    <TableCell className="hidden text-muted-foreground sm:table-cell">{formatDate(po.createdAt)}</TableCell>
                     <TableCell>
                       <Badge variant={poStatusVariants[po.status]}>{po.status.replace("_", " ")}</Badge>
                     </TableCell>
-                    <TableCell className="text-right">{formatMoney(po.total)}</TableCell>
+                    <TableCell className="text-right whitespace-nowrap">{formatMoney(po.total)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

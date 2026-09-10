@@ -46,9 +46,9 @@ export default async function CustomersPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
-                  <TableHead>Contact</TableHead>
+                  <TableHead className="hidden sm:table-cell">Contact</TableHead>
                   <TableHead>Phone</TableHead>
-                  <TableHead>Orders</TableHead>
+                  <TableHead className="hidden sm:table-cell">Orders</TableHead>
                   <TableHead className="w-20" />
                 </TableRow>
               </TableHeader>
@@ -60,9 +60,9 @@ export default async function CustomersPage() {
                         {customer.name}
                       </Link>
                     </TableCell>
-                    <TableCell className="text-muted-foreground">{customer.contactName || "—"}</TableCell>
-                    <TableCell className="text-muted-foreground">{customer.phone || "—"}</TableCell>
-                    <TableCell>{customer._count.orders}</TableCell>
+                    <TableCell className="hidden text-muted-foreground sm:table-cell">{customer.contactName || "—"}</TableCell>
+                    <TableCell className="text-muted-foreground whitespace-nowrap">{customer.phone || "—"}</TableCell>
+                    <TableCell className="hidden sm:table-cell">{customer._count.orders}</TableCell>
                     <TableCell>
                       <div className="flex justify-end gap-1">
                         <CustomerFormDialog

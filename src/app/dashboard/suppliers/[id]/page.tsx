@@ -58,18 +58,18 @@ export default async function SupplierDetailPage({ params }: PageProps<"/dashboa
               <TableHeader>
                 <TableRow>
                   <TableHead>Material</TableHead>
-                  <TableHead className="text-right">Stock</TableHead>
-                  <TableHead className="text-right">Cost/unit</TableHead>
+                  <TableHead className="text-right whitespace-nowrap">Stock</TableHead>
+                  <TableHead className="hidden text-right whitespace-nowrap sm:table-cell">Cost/unit</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {supplier.materials.map((m) => (
                   <TableRow key={m.id}>
                     <TableCell>{m.name}</TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right whitespace-nowrap">
                       {m.stockQty.toString()} {m.unit}
                     </TableCell>
-                    <TableCell className="text-right">{formatMoney(m.costPerUnit)}</TableCell>
+                    <TableCell className="hidden text-right whitespace-nowrap sm:table-cell">{formatMoney(m.costPerUnit)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -90,9 +90,9 @@ export default async function SupplierDetailPage({ params }: PageProps<"/dashboa
               <TableHeader>
                 <TableRow>
                   <TableHead>PO</TableHead>
-                  <TableHead>Date</TableHead>
+                  <TableHead className="hidden sm:table-cell">Date</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
+                  <TableHead className="text-right whitespace-nowrap">Total</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -103,11 +103,11 @@ export default async function SupplierDetailPage({ params }: PageProps<"/dashboa
                         PO-{po.poSeq}
                       </Link>
                     </TableCell>
-                    <TableCell>{formatDate(po.createdAt)}</TableCell>
+                    <TableCell className="hidden whitespace-nowrap sm:table-cell">{formatDate(po.createdAt)}</TableCell>
                     <TableCell>
                       <Badge variant="secondary">{po.status.replace("_", " ")}</Badge>
                     </TableCell>
-                    <TableCell className="text-right">{formatMoney(po.total)}</TableCell>
+                    <TableCell className="text-right whitespace-nowrap">{formatMoney(po.total)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

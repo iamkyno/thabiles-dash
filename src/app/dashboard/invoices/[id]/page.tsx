@@ -66,16 +66,16 @@ export default async function InvoiceDetailPage({ params }: PageProps<"/dashboar
             <TableHeader>
               <TableRow>
                 <TableHead>Item</TableHead>
-                <TableHead className="text-right">Qty</TableHead>
-                <TableHead className="text-right">Total</TableHead>
+                <TableHead className="text-right whitespace-nowrap">Qty</TableHead>
+                <TableHead className="text-right whitespace-nowrap">Total</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {invoice.order.items.map((item) => (
                 <TableRow key={item.id}>
                   <TableCell>{item.description}</TableCell>
-                  <TableCell className="text-right">{item.quantity}</TableCell>
-                  <TableCell className="text-right">{formatMoney(item.lineTotal)}</TableCell>
+                  <TableCell className="text-right whitespace-nowrap">{item.quantity}</TableCell>
+                  <TableCell className="text-right whitespace-nowrap">{formatMoney(item.lineTotal)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -118,19 +118,19 @@ export default async function InvoiceDetailPage({ params }: PageProps<"/dashboar
                 <TableRow>
                   <TableHead>Date</TableHead>
                   <TableHead>Method</TableHead>
-                  <TableHead>Reference</TableHead>
-                  <TableHead>Recorded by</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
+                  <TableHead className="hidden sm:table-cell">Reference</TableHead>
+                  <TableHead className="hidden sm:table-cell">Recorded by</TableHead>
+                  <TableHead className="text-right whitespace-nowrap">Amount</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {invoice.payments.map((p) => (
                   <TableRow key={p.id}>
-                    <TableCell>{formatDateTime(p.paidAt)}</TableCell>
+                    <TableCell className="whitespace-nowrap">{formatDateTime(p.paidAt)}</TableCell>
                     <TableCell>{paymentMethodLabels[p.method]}</TableCell>
-                    <TableCell className="text-muted-foreground">{p.reference || "—"}</TableCell>
-                    <TableCell className="text-muted-foreground">{p.recordedBy.name}</TableCell>
-                    <TableCell className="text-right">{formatMoney(p.amount)}</TableCell>
+                    <TableCell className="hidden text-muted-foreground sm:table-cell">{p.reference || "—"}</TableCell>
+                    <TableCell className="hidden text-muted-foreground sm:table-cell">{p.recordedBy.name}</TableCell>
+                    <TableCell className="text-right whitespace-nowrap">{formatMoney(p.amount)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

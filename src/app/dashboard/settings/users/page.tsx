@@ -49,8 +49,8 @@ export default async function UsersSettingsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Requested</TableHead>
+                  <TableHead className="hidden sm:table-cell">Email</TableHead>
+                  <TableHead className="hidden sm:table-cell">Requested</TableHead>
                   <TableHead className="w-40" />
                 </TableRow>
               </TableHeader>
@@ -58,8 +58,8 @@ export default async function UsersSettingsPage() {
                 {pendingUsers.map((user) => (
                   <TableRow key={user.id}>
                     <TableCell className="font-medium">{user.name}</TableCell>
-                    <TableCell className="text-muted-foreground">{user.email}</TableCell>
-                    <TableCell className="text-muted-foreground">{formatDate(user.createdAt)}</TableCell>
+                    <TableCell className="hidden text-muted-foreground sm:table-cell">{user.email}</TableCell>
+                    <TableCell className="hidden text-muted-foreground sm:table-cell">{formatDate(user.createdAt)}</TableCell>
                     <TableCell>
                       <PendingApprovalActions userId={user.id} />
                     </TableCell>
@@ -81,10 +81,10 @@ export default async function UsersSettingsPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
+                <TableHead className="hidden sm:table-cell">Email</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Joined</TableHead>
+                <TableHead className="hidden sm:table-cell">Joined</TableHead>
                 <TableHead className="w-10" />
               </TableRow>
             </TableHeader>
@@ -92,7 +92,7 @@ export default async function UsersSettingsPage() {
               {users.map((user) => (
                 <TableRow key={user.id}>
                   <TableCell className="font-medium">{user.name}</TableCell>
-                  <TableCell className="text-muted-foreground">{user.email}</TableCell>
+                  <TableCell className="hidden text-muted-foreground sm:table-cell">{user.email}</TableCell>
                   <TableCell>
                     <Badge variant={roleBadgeVariant[user.role ?? "STAFF"] ?? "secondary"}>
                       {user.role}
@@ -109,7 +109,7 @@ export default async function UsersSettingsPage() {
                       <Badge variant="success">Active</Badge>
                     )}
                   </TableCell>
-                  <TableCell className="text-muted-foreground">{formatDate(user.createdAt)}</TableCell>
+                  <TableCell className="hidden text-muted-foreground sm:table-cell">{formatDate(user.createdAt)}</TableCell>
                   <TableCell>
                     <UserRowActions
                       userId={user.id}

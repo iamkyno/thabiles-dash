@@ -47,18 +47,18 @@ export default async function ProductsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>SKU</TableHead>
+                  <TableHead className="hidden sm:table-cell">SKU</TableHead>
                   <TableHead>Name</TableHead>
-                  <TableHead className="text-right">Price</TableHead>
-                  <TableHead className="text-right">Stock</TableHead>
-                  <TableHead>Recipe</TableHead>
+                  <TableHead className="text-right whitespace-nowrap">Price</TableHead>
+                  <TableHead className="text-right whitespace-nowrap">Stock</TableHead>
+                  <TableHead className="hidden sm:table-cell">Recipe</TableHead>
                   <TableHead className="w-24" />
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {products.map((product) => (
                   <TableRow key={product.id} className={!product.isActive ? "opacity-50" : undefined}>
-                    <TableCell className="font-mono text-xs">{product.sku}</TableCell>
+                    <TableCell className="hidden font-mono text-xs sm:table-cell">{product.sku}</TableCell>
                     <TableCell className="font-medium">
                       {product.name}
                       {product.unitSize && <span className="text-muted-foreground"> ({product.unitSize})</span>}
@@ -68,15 +68,15 @@ export default async function ProductsPage() {
                         </Badge>
                       )}
                     </TableCell>
-                    <TableCell className="text-right">{formatMoney(product.sellPrice)}</TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right whitespace-nowrap">{formatMoney(product.sellPrice)}</TableCell>
+                    <TableCell className="text-right whitespace-nowrap">
                       {product.stockQty <= product.reorderLevel ? (
                         <Badge variant="warning">{product.stockQty}</Badge>
                       ) : (
                         product.stockQty
                       )}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden sm:table-cell">
                       {product.recipe ? (
                         <Link href={`/dashboard/recipes/${product.id}`} className="text-sm hover:underline">
                           View recipe

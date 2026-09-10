@@ -111,7 +111,7 @@ export function POForm({ suppliers, materials }: { suppliers: Option[]; material
                 const materialId = items[index]?.materialId;
                 const material = materials.find((m) => m.id === materialId);
                 return (
-                  <div key={f.id} className="grid grid-cols-[1fr_auto_auto_auto] items-end gap-2">
+                  <div key={f.id} className="grid grid-cols-1 gap-2 sm:grid-cols-[1fr_auto_auto_auto] sm:items-end">
                     <FormField
                       control={form.control}
                       name={`items.${index}.materialId`}
@@ -142,7 +142,7 @@ export function POForm({ suppliers, materials }: { suppliers: Option[]; material
                         </FormItem>
                       )}
                     />
-                    <div className="w-24">
+                    <div className="w-full sm:w-24">
                       <NumberField
                         control={form.control}
                         name={`items.${index}.quantityOrdered`}
@@ -150,14 +150,14 @@ export function POForm({ suppliers, materials }: { suppliers: Option[]; material
                         step="0.001"
                       />
                     </div>
-                    <div className="w-28">
+                    <div className="w-full sm:w-28">
                       <NumberField control={form.control} name={`items.${index}.unitCost`} label="" step="0.0001" />
                     </div>
                     <Button type="button" variant="ghost" size="icon" onClick={() => itemFields.remove(index)}>
                       <Trash2 className="text-destructive" />
                     </Button>
                     {material && (
-                      <p className="col-span-4 -mt-1 text-xs text-muted-foreground">
+                      <p className="-mt-1 text-xs text-muted-foreground sm:col-span-4">
                         Qty · Unit cost (last: {formatMoney(material.costPerUnit)})
                       </p>
                     )}

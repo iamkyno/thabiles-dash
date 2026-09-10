@@ -60,18 +60,18 @@ export default async function OrderDetailPage({ params }: PageProps<"/dashboard/
             <TableHeader>
               <TableRow>
                 <TableHead>Item</TableHead>
-                <TableHead className="text-right">Qty</TableHead>
-                <TableHead className="text-right">Unit price</TableHead>
-                <TableHead className="text-right">Total</TableHead>
+                <TableHead className="text-right whitespace-nowrap">Qty</TableHead>
+                <TableHead className="hidden text-right whitespace-nowrap sm:table-cell">Unit price</TableHead>
+                <TableHead className="text-right whitespace-nowrap">Total</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {order.items.map((item) => (
                 <TableRow key={item.id}>
                   <TableCell>{item.description}</TableCell>
-                  <TableCell className="text-right">{item.quantity}</TableCell>
-                  <TableCell className="text-right">{formatMoney(item.unitPrice)}</TableCell>
-                  <TableCell className="text-right">{formatMoney(item.lineTotal)}</TableCell>
+                  <TableCell className="text-right whitespace-nowrap">{item.quantity}</TableCell>
+                  <TableCell className="hidden text-right whitespace-nowrap sm:table-cell">{formatMoney(item.unitPrice)}</TableCell>
+                  <TableCell className="text-right whitespace-nowrap">{formatMoney(item.lineTotal)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

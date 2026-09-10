@@ -46,12 +46,12 @@ export default async function MaterialsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>SKU</TableHead>
+                  <TableHead className="hidden sm:table-cell">SKU</TableHead>
                   <TableHead>Name</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Supplier</TableHead>
-                  <TableHead className="text-right">Cost/unit</TableHead>
-                  <TableHead className="text-right">Stock</TableHead>
+                  <TableHead className="hidden sm:table-cell">Type</TableHead>
+                  <TableHead className="hidden sm:table-cell">Supplier</TableHead>
+                  <TableHead className="hidden text-right sm:table-cell">Cost/unit</TableHead>
+                  <TableHead className="text-right whitespace-nowrap">Stock</TableHead>
                   <TableHead className="w-24" />
                 </TableRow>
               </TableHeader>
@@ -62,7 +62,7 @@ export default async function MaterialsPage() {
                   const low = stockQty <= reorderLevel;
                   return (
                     <TableRow key={m.id} className={!m.isActive ? "opacity-50" : undefined}>
-                      <TableCell className="font-mono text-xs">{m.sku}</TableCell>
+                      <TableCell className="hidden font-mono text-xs sm:table-cell">{m.sku}</TableCell>
                       <TableCell className="font-medium">
                         {m.name}
                         {!m.isActive && (
@@ -71,12 +71,12 @@ export default async function MaterialsPage() {
                           </Badge>
                         )}
                       </TableCell>
-                      <TableCell className="text-muted-foreground">{materialTypeLabels[m.type]}</TableCell>
-                      <TableCell className="text-muted-foreground">{m.primarySupplier?.name || "—"}</TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="hidden text-muted-foreground sm:table-cell">{materialTypeLabels[m.type]}</TableCell>
+                      <TableCell className="hidden text-muted-foreground sm:table-cell">{m.primarySupplier?.name || "—"}</TableCell>
+                      <TableCell className="hidden text-right sm:table-cell">
                         {formatMoney(m.costPerUnit)}/{unitLabels[m.unit]}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right whitespace-nowrap">
                         {low ? (
                           <Badge variant="warning">
                             {stockQty} {unitLabels[m.unit]}

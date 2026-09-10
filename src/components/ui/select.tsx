@@ -4,7 +4,7 @@ import * as React from "react";
 import * as SelectPrimitive from "@radix-ui/react-select";
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 
-import { cn } from "@/lib/utils";
+import { cn, scrollFieldIntoView } from "@/lib/utils";
 
 function Select(props: React.ComponentProps<typeof SelectPrimitive.Root>) {
   return <SelectPrimitive.Root data-slot="select" {...props} />;
@@ -21,6 +21,7 @@ function SelectValue(props: React.ComponentProps<typeof SelectPrimitive.Value>) 
 function SelectTrigger({
   className,
   children,
+  onFocus,
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Trigger>) {
   return (
@@ -33,6 +34,10 @@ function SelectTrigger({
         "data-[placeholder]:text-muted-foreground [&>span]:line-clamp-1",
         className
       )}
+      onFocus={(e) => {
+        onFocus?.(e);
+        scrollFieldIntoView(e.currentTarget);
+      }}
       {...props}
     >
       {children}

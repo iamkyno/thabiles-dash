@@ -103,8 +103,8 @@ export default async function ProductionBatchDetailPage({ params }: PageProps<"/
             <TableHeader>
               <TableRow>
                 <TableHead>Material</TableHead>
-                <TableHead className="text-right">Quantity</TableHead>
-                {batch.status === "COMPLETED" && <TableHead className="text-right">Cost</TableHead>}
+                <TableHead className="text-right whitespace-nowrap">Quantity</TableHead>
+                {batch.status === "COMPLETED" && <TableHead className="text-right whitespace-nowrap">Cost</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -112,16 +112,16 @@ export default async function ProductionBatchDetailPage({ params }: PageProps<"/
                 ? batch.materialUsages.map((usage) => (
                     <TableRow key={usage.id}>
                       <TableCell>{usage.material.name}</TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right whitespace-nowrap">
                         {usage.quantityUsed.toString()} {usage.material.unit}
                       </TableCell>
-                      <TableCell className="text-right">{formatMoney(usage.lineCost)}</TableCell>
+                      <TableCell className="text-right whitespace-nowrap">{formatMoney(usage.lineCost)}</TableCell>
                     </TableRow>
                   ))
                 : batch.recipe.items.map((item) => (
                     <TableRow key={item.id}>
                       <TableCell>{item.material.name}</TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="text-right whitespace-nowrap">
                         {item.quantityPerBatch.toString()} {item.material.unit}
                       </TableCell>
                     </TableRow>

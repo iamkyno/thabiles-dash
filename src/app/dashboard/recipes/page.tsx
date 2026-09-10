@@ -43,7 +43,7 @@ export default async function RecipesPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Product</TableHead>
-                  <TableHead>Yield</TableHead>
+                  <TableHead className="hidden sm:table-cell">Yield</TableHead>
                   <TableHead>Ingredients</TableHead>
                   <TableHead className="w-32" />
                 </TableRow>
@@ -52,7 +52,7 @@ export default async function RecipesPage() {
                 {products.map((product) => (
                   <TableRow key={product.id}>
                     <TableCell className="font-medium">{product.name}</TableCell>
-                    <TableCell className="text-muted-foreground">
+                    <TableCell className="hidden text-muted-foreground sm:table-cell">
                       {product.recipe ? `${product.recipe.yieldQuantity} units/batch` : "—"}
                     </TableCell>
                     <TableCell>
