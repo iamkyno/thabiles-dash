@@ -1,14 +1,15 @@
 import { notFound } from "next/navigation";
 
 import { prisma } from "@/lib/prisma";
-import { requireSession } from "@/lib/session";
+import { requireSession, requireSection } from "@/lib/session";
 import { getBusinessProfile } from "@/actions/business";
 import { formatMoney } from "@/lib/money";
 import { formatDate } from "@/lib/tz";
 import { PrintButton } from "@/components/print-button";
 
 export default async function PrintInvoicePage({ params }: PageProps<"/print/invoices/[id]">) {
-  await requireSession();
+  const session = await requireSession();
+  await requireSection(session, "invoices");
   const { id } = await params;
 
   const [invoice, business] = await Promise.all([

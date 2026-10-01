@@ -14,14 +14,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { prisma } from "@/lib/prisma";
-import { requireSession } from "@/lib/session";
+import { requireSession, requireSection } from "@/lib/session";
 import { formatMoney } from "@/lib/money";
 import { formatDate, formatDateTime } from "@/lib/tz";
 import { invoiceStatusVariants, paymentMethodLabels } from "../schema";
 import { RecordPaymentDialog } from "../record-payment-dialog";
 
 export default async function InvoiceDetailPage({ params }: PageProps<"/dashboard/invoices/[id]">) {
-  await requireSession();
+  const session = await requireSession();
+  await requireSection(session, "invoices");
   const { id } = await params;
 
   const invoice = await prisma.invoice.findUnique({

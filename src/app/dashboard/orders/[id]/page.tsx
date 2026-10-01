@@ -14,7 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { prisma } from "@/lib/prisma";
-import { requireSession } from "@/lib/session";
+import { requireSession, requireSection } from "@/lib/session";
 import { formatMoney } from "@/lib/money";
 import { formatDateTime } from "@/lib/tz";
 import { orderStatusVariants } from "../schema";
@@ -22,7 +22,8 @@ import { OrderActions } from "../order-actions";
 import { GenerateInvoiceButton } from "../generate-invoice-button";
 
 export default async function OrderDetailPage({ params }: PageProps<"/dashboard/orders/[id]">) {
-  await requireSession();
+  const session = await requireSession();
+  await requireSection(session, "orders");
   const { id } = await params;
 
   const order = await prisma.order.findUnique({

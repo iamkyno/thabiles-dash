@@ -14,12 +14,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { prisma } from "@/lib/prisma";
-import { requireSession } from "@/lib/session";
+import { requireSession, requireSection } from "@/lib/session";
 import { formatMoney } from "@/lib/money";
 import { formatDate } from "@/lib/tz";
 
 export default async function CustomerDetailPage({ params }: PageProps<"/dashboard/customers/[id]">) {
-  await requireSession();
+  const session = await requireSession();
+  await requireSection(session, "customers");
   const { id } = await params;
 
   const customer = await prisma.customer.findUnique({

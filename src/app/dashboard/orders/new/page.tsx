@@ -1,9 +1,10 @@
 import { prisma } from "@/lib/prisma";
-import { requireSession } from "@/lib/session";
+import { requireSession, requireSection } from "@/lib/session";
 import { OrderForm } from "../order-form";
 
 export default async function NewOrderPage() {
-  await requireSession();
+  const session = await requireSession();
+  await requireSection(session, "orders");
 
   const [customers, products] = await Promise.all([
     prisma.customer.findMany({ orderBy: { name: "asc" } }),

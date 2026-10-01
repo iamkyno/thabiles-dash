@@ -6,14 +6,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { prisma } from "@/lib/prisma";
-import { requireSession } from "@/lib/session";
+import { requireSession, requireSection } from "@/lib/session";
 import { formatDateTime } from "@/lib/tz";
 import { deliveryStatusVariants } from "../schema";
 import { DeliveryStatusActions } from "../delivery-status-actions";
 import { DeliveryDetailsForm } from "../delivery-details-form";
 
 export default async function DeliveryDetailPage({ params }: PageProps<"/dashboard/deliveries/[id]">) {
-  await requireSession();
+  const session = await requireSession();
+  await requireSection(session, "deliveries");
   const { id } = await params;
 
   const delivery = await prisma.delivery.findUnique({
