@@ -16,14 +16,17 @@ export default async function BusinessSettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle>Profile</CardTitle>
-          <CardDescription>These details appear on printed invoices.</CardDescription>
+          <CardDescription>These details appear on invoices you print or share with clients.</CardDescription>
         </CardHeader>
         <CardContent>
           <BusinessForm
             defaultValues={{
               businessName: profile.businessName,
               address: profile.address ?? "",
+              phone: profile.phone ?? "",
+              email: profile.email ?? "",
               taxNumber: profile.taxNumber ?? "",
+              paymentDetails: profile.paymentDetails ?? "",
               currencyCode: profile.currencyCode,
               timezone: profile.timezone,
               invoicePrefix: profile.invoicePrefix,

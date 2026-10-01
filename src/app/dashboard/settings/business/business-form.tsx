@@ -9,9 +9,11 @@ import { Loader2 } from "lucide-react";
 import { updateBusinessProfile, type BusinessProfileInput } from "@/actions/business";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -62,12 +64,40 @@ export function BusinessForm({ defaultValues }: { defaultValues: BusinessProfile
             <FormItem>
               <FormLabel>Address</FormLabel>
               <FormControl>
-                <Input {...field} />
+                <Textarea rows={2} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <FormField
+            control={form.control}
+            name="phone"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Phone</FormLabel>
+                <FormControl>
+                  <Input type="tel" autoComplete="tel" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input type="email" autoComplete="email" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
         <FormField
           control={form.control}
           name="taxNumber"
@@ -77,6 +107,26 @@ export function BusinessForm({ defaultValues }: { defaultValues: BusinessProfile
               <FormControl>
                 <Input {...field} />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="paymentDetails"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>How clients pay you</FormLabel>
+              <FormControl>
+                <Textarea
+                  rows={5}
+                  placeholder={"Bank: \nAccount name: \nAccount number: \nBranch code: "}
+                  {...field}
+                />
+              </FormControl>
+              <FormDescription>
+                Banking details shown on unpaid invoices, with the invoice number as the payment reference.
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -123,7 +173,7 @@ export function BusinessForm({ defaultValues }: { defaultValues: BusinessProfile
           )}
         />
         <div>
-          <Button type="submit" disabled={submitting}>
+          <Button type="submit" className="w-full sm:w-auto" disabled={submitting}>
             {submitting && <Loader2 className="animate-spin" />}
             Save changes
           </Button>

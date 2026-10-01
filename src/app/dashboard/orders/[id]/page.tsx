@@ -15,6 +15,8 @@ import {
 } from "@/components/ui/table";
 import { prisma } from "@/lib/prisma";
 import { requireSession, requireSection } from "@/lib/session";
+import { readBusinessProfile } from "@/lib/business-profile";
+import { invoiceNumber } from "@/lib/invoices";
 import { formatMoney } from "@/lib/money";
 import { formatDateTime } from "@/lib/tz";
 import { orderStatusVariants } from "../schema";
@@ -27,16 +29,19 @@ export default async function OrderDetailPage({ params }: PageProps<"/dashboard/
   await requireSection(session, "orders");
   const { id } = await params;
 
-  const order = await prisma.order.findUnique({
-    where: { id },
-    include: {
-      customer: true,
-      items: true,
-      invoice: { include: { _count: { select: { payments: true } } } },
-      delivery: true,
-      createdBy: true,
-    },
-  });
+  const [order, business] = await Promise.all([
+    prisma.order.findUnique({
+      where: { id },
+      include: {
+        customer: true,
+        items: true,
+        invoice: { include: { _count: { select: { payments: true } } } },
+        delivery: true,
+        createdBy: true,
+      },
+    }),
+    readBusinessProfile(),
+  ]);
 
   if (!order) notFound();
   const canEdit = order.status !== "CANCELLED" && !order.invoice;
@@ -116,7 +121,9 @@ export default async function OrderDetailPage({ params }: PageProps<"/dashboard/
           <OrderActions orderId={order.id} status={order.status} />
           {order.invoice ? (
             <Button variant="outline" asChild>
-              <Link href={`/dashboard/invoices/${order.invoice.id}`}>View invoice</Link>
+              <Link href={`/dashboard/invoices/${order.invoice.id}`}>
+                View invoice {invoiceNumber(business.invoicePrefix, order.invoice.invoiceSeq)}
+              </Link>
             </Button>
           ) : (
             order.status !== "CANCELLED" && <GenerateInvoiceButton orderId={order.id} />
@@ -129,7 +136,7 @@ export default async function OrderDetailPage({ params }: PageProps<"/dashboard/
               hasDelivery={Boolean(order.delivery)}
               invoice={
                 order.invoice && {
-                  number: `INV-${order.invoice.invoiceSeq}`,
+                  number: invoiceNumber(business.invoicePrefix, order.invoice.invoiceSeq),
                   paymentCount: order.invoice._count.payments,
                   amountPaid: Number(order.invoice.amountPaid),
                 }

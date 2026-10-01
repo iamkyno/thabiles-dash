@@ -81,15 +81,19 @@ enum ApprovalStatus {
 // ---------- Business profile / settings ----------
 
 model BusinessProfile {
-  id            Int      @id @default(1)
-  businessName  String
-  logoUrl       String?
-  address       String?
-  taxNumber     String?
-  currencyCode  String   @default("ZAR")
-  timezone      String   @default("Africa/Johannesburg")
-  invoicePrefix String   @default("INV")
-  updatedAt     DateTime @updatedAt
+  id             Int      @id @default(1)
+  businessName   String
+  logoUrl        String?
+  address        String?
+  phone          String?
+  email          String?
+  taxNumber      String?
+  // Banking details etc. printed on invoices so clients know how to pay.
+  paymentDetails String?
+  currencyCode   String   @default("ZAR")
+  timezone       String   @default("Africa/Johannesburg")
+  invoicePrefix  String   @default("INV")
+  updatedAt      DateTime @updatedAt
 }
 
 // ---------- Domain ----------
@@ -283,6 +287,8 @@ model Invoice {
   total         Decimal       @db.Decimal(12, 2)
   amountPaid    Decimal       @default(0) @db.Decimal(12, 2)
   notes         String?
+  // Secret for the client's view-only link (/invoice/<token>); null when the invoice isn't shared.
+  shareToken    String?       @unique
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 

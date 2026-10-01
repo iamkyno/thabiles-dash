@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -35,48 +36,71 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { NumberField } from "@/components/forms/number-field";
+import { formatMoney } from "@/lib/money";
 import { paymentMethods, paymentMethodLabels } from "./schema";
 
-const schema = z.object({
-  amount: z.number().positive("Amount must be greater than 0"),
-  method: z.enum(paymentMethods),
-  reference: z.string().optional(),
-});
+function paymentSchema(balance: number) {
+  return z.object({
+    amount: z
+      .number({ error: "Enter an amount" })
+      .positive("Amount must be greater than 0")
+      .refine((v) => Math.round(v * 100) <= Math.round(balance * 100), {
+        message: `Only ${formatMoney(balance)} is still owed`,
+      }),
+    method: z.enum(paymentMethods),
+    reference: z.string().optional(),
+  });
+}
+
+type PaymentValues = z.infer<ReturnType<typeof paymentSchema>>;
 
 export function RecordPaymentDialog({ invoiceId, balance }: { invoiceId: string; balance: number }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  const form = useForm<z.infer<typeof schema>>({
+  const schema = useMemo(() => paymentSchema(balance), [balance]);
+  const form = useForm<PaymentValues>({
     resolver: zodResolver(schema),
     defaultValues: { amount: balance, method: "CASH", reference: "" },
   });
 
-  async function onSubmit(values: z.infer<typeof schema>) {
+  async function onSubmit(values: PaymentValues) {
     setSubmitting(true);
     try {
-      await recordPayment(invoiceId, values);
+      const result = await recordPayment(invoiceId, values);
+      if (!result.ok) {
+        toast.error(result.error);
+        return;
+      }
       toast.success("Payment recorded");
       setOpen(false);
       router.refresh();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to record payment");
+    } catch {
+      toast.error("Failed to record payment");
     } finally {
       setSubmitting(false);
     }
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        // Start from what's owed now, not what was owed when the page first loaded.
+        if (next) form.reset({ amount: balance, method: "CASH", reference: "" });
+        setOpen(next);
+      }}
+    >
       <DialogTrigger asChild>
-        <Button>
+        <Button variant="outline">
           <Plus /> Record payment
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Record payment</DialogTitle>
+          <DialogDescription>{formatMoney(balance)} is still owed on this invoice.</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -119,7 +143,7 @@ export function RecordPaymentDialog({ invoiceId, balance }: { invoiceId: string;
               )}
             />
             <DialogFooter>
-              <Button type="submit" disabled={submitting}>
+              <Button type="submit" className="w-full sm:w-auto" disabled={submitting}>
                 {submitting && <Loader2 className="animate-spin" />}
                 Record payment
               </Button>

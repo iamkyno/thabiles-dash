@@ -19,11 +19,15 @@ export function GenerateInvoiceButton({ orderId }: { orderId: string }) {
       onClick={() =>
         startTransition(async () => {
           try {
-            const invoice = await generateInvoice(orderId);
+            const result = await generateInvoice(orderId);
+            if (!result.ok) {
+              toast.error(result.error);
+              return;
+            }
             toast.success("Invoice generated");
-            router.push(`/dashboard/invoices/${invoice.id}`);
-          } catch (err) {
-            toast.error(err instanceof Error ? err.message : "Failed to generate invoice");
+            router.push(`/dashboard/invoices/${result.data.id}`);
+          } catch {
+            toast.error("Failed to generate invoice");
           }
         })
       }
