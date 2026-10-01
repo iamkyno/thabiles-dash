@@ -71,11 +71,15 @@ export function OrderForm({ customers, products }: { customers: Option[]; produc
   async function onSubmit(values: OrderFormValues) {
     setSubmitting(true);
     try {
-      const order = await createOrder(values);
+      const result = await createOrder(values);
+      if (!result.ok) {
+        toast.error(result.error);
+        return;
+      }
       toast.success("Order created");
-      router.push(`/dashboard/orders/${order.id}`);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to create order");
+      router.push(`/dashboard/orders/${result.data.id}`);
+    } catch {
+      toast.error("Failed to create order");
     } finally {
       setSubmitting(false);
     }

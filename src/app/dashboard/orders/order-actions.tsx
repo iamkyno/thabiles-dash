@@ -61,11 +61,15 @@ export function OrderActions({ orderId, status }: { orderId: string; status: str
           if (!confirm("Cancel this order? Product stock will be restored.")) return;
           startTransition(async () => {
             try {
-              await cancelOrder(orderId);
+              const result = await cancelOrder(orderId);
+              if (!result.ok) {
+                toast.error(result.error);
+                return;
+              }
               toast.success("Order cancelled");
               router.refresh();
-            } catch (err) {
-              toast.error(err instanceof Error ? err.message : "Failed to cancel order");
+            } catch {
+              toast.error("Failed to cancel order");
             }
           });
         }}

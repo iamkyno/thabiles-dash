@@ -5,6 +5,9 @@ import { z } from "zod";
 
 import { prisma } from "@/lib/prisma";
 import { requireSession, requireSection } from "@/lib/session";
+import { runAction, UserError } from "@/lib/action-result";
+import { Prisma } from "@/generated/prisma/client";
+import { comboSchema, type ComboFormValues } from "@/app/dashboard/products/schema";
 
 const productSchema = z.object({
   sku: z.string().min(1, "SKU is required"),
@@ -41,4 +44,65 @@ export async function deactivateProduct(id: string) {
   await requireSection(session, "products");
   await prisma.finishedProduct.update({ where: { id }, data: { isActive: false } });
   revalidatePath("/dashboard/products");
+}
+
+function comboLines(data: ComboFormValues) {
+  return [
+    ...data.products.map((p, i) => ({ productId: p.productId, quantity: p.quantity, position: i })),
+    ...data.extras.map((e, i) => ({
+      description: e.description,
+      quantity: e.quantity,
+      position: data.products.length + i,
+    })),
+  ];
+}
+
+async function saveCombo(id: string | null, data: ComboFormValues) {
+  const productIds = data.products.map((p) => p.productId);
+  const components = await prisma.finishedProduct.findMany({
+    where: { id: { in: productIds } },
+    select: { isCombo: true },
+  });
+  if (components.length !== productIds.length || components.some((c) => c.isCombo)) {
+    throw new UserError("A combo can only contain regular products");
+  }
+
+  const fields = { name: data.name, sku: data.sku, sellPrice: data.sellPrice, isActive: data.isActive };
+  try {
+    if (id) {
+      await prisma.$transaction([
+        prisma.comboItem.deleteMany({ where: { comboId: id } }),
+        prisma.finishedProduct.update({
+          where: { id, isCombo: true },
+          data: { ...fields, comboItems: { create: comboLines(data) } },
+        }),
+      ]);
+    } else {
+      await prisma.finishedProduct.create({
+        data: { ...fields, isCombo: true, comboItems: { create: comboLines(data) } },
+      });
+    }
+  } catch (err) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
+      throw new UserError("That SKU is already used by another product");
+    }
+    throw err;
+  }
+
+  revalidatePath("/dashboard/products");
+  return null;
+}
+
+export async function createCombo(input: ComboFormValues) {
+  const session = await requireSession();
+  await requireSection(session, "products");
+  const data = comboSchema.parse(input);
+  return runAction(() => saveCombo(null, data));
+}
+
+export async function updateCombo(id: string, input: ComboFormValues) {
+  const session = await requireSession();
+  await requireSection(session, "products");
+  const data = comboSchema.parse(input);
+  return runAction(() => saveCombo(id, data));
 }

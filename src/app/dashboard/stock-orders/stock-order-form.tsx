@@ -47,11 +47,15 @@ export function StockOrderForm({ products }: { products: ProductOption[] }) {
   async function onSubmit(values: StockOrderFormValues) {
     setSubmitting(true);
     try {
-      const order = await createStockOrder(values);
+      const result = await createStockOrder(values);
+      if (!result.ok) {
+        toast.error(result.error);
+        return;
+      }
       toast.success("Stock order created");
-      router.push(`/dashboard/stock-orders/${order.id}`);
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to create stock order");
+      router.push(`/dashboard/stock-orders/${result.data.id}`);
+    } catch {
+      toast.error("Failed to create stock order");
     } finally {
       setSubmitting(false);
     }

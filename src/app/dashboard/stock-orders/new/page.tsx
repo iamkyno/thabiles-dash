@@ -10,7 +10,7 @@ export default async function NewStockOrderPage() {
   await requireSection(session, "stock-orders");
 
   const [products, lastCosts] = await Promise.all([
-    prisma.finishedProduct.findMany({ where: { isActive: true }, orderBy: { name: "asc" } }),
+    prisma.finishedProduct.findMany({ where: { isActive: true, isCombo: false }, orderBy: { name: "asc" } }),
     prisma.stockOrderItem.findMany({
       distinct: ["productId"],
       orderBy: { stockOrder: { createdAt: "desc" } },

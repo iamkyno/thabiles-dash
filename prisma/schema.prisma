@@ -141,11 +141,28 @@ model FinishedProduct {
   stockQty     Int      @default(0)
   reorderLevel Int      @default(0)
   isActive     Boolean  @default(true)
+  isCombo      Boolean  @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   orderItems      OrderItem[]
   stockOrderItems StockOrderItem[]
+  comboItems      ComboItem[]           @relation("ComboContents")
+  inCombos        ComboItem[]           @relation("ComboComponent")
+  stockDeductions OrderStockDeduction[]
+}
+
+// A line in a combo: either a product (taken from stock when the combo sells) or a
+// free-text item such as packaging that isn't stock-counted (productId null, description set).
+model ComboItem {
+  id          String           @id @default(cuid())
+  combo       FinishedProduct  @relation("ComboContents", fields: [comboId], references: [id], onDelete: Cascade)
+  comboId     String
+  product     FinishedProduct? @relation("ComboComponent", fields: [productId], references: [id], onDelete: Restrict)
+  productId   String?
+  description String?
+  quantity    Int
+  position    Int              @default(0)
 }
 
 model StockOrder {
@@ -204,9 +221,21 @@ model Order {
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
-  items    OrderItem[]
-  invoice  Invoice?
-  delivery Delivery?
+  items           OrderItem[]
+  stockDeductions OrderStockDeduction[]
+  invoice         Invoice?
+  delivery        Delivery?
+}
+
+// What an order actually took out of stock (combos expanded into their products),
+// so cancelling restores exactly that even if a combo's contents change later.
+model OrderStockDeduction {
+  id        String          @id @default(cuid())
+  order     Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId   String
+  product   FinishedProduct @relation(fields: [productId], references: [id])
+  productId String
+  quantity  Int
 }
 
 model OrderItem {

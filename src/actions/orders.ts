@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { prisma } from "@/lib/prisma";
 import { requireSession, requireSection } from "@/lib/session";
+import { runAction, UserError } from "@/lib/action-result";
 import { Prisma } from "@/generated/prisma/client";
 
 const orderSchema = z.object({
@@ -25,71 +26,99 @@ export async function createOrder(input: OrderInput) {
   await requireSection(session, "orders");
   const data = orderSchema.parse(input);
 
-  if (data.needsDelivery && !data.deliveryAddress?.trim()) {
-    throw new Error("Enter a delivery address");
-  }
-
-  const order = await prisma.$transaction(async (tx) => {
-    const lineItems: {
-      productId: string;
-      description: string;
-      quantity: number;
-      unitPrice: Prisma.Decimal;
-      lineTotal: Prisma.Decimal;
-    }[] = [];
-
-    for (const item of data.items) {
-      const product = await tx.finishedProduct.findUniqueOrThrow({ where: { id: item.productId } });
-      const decremented = await tx.finishedProduct.updateMany({
-        where: { id: item.productId, stockQty: { gte: item.quantity } },
-        data: { stockQty: { decrement: item.quantity } },
-      });
-      if (decremented.count === 0) {
-        throw new Error(`Not enough stock for ${product.name}`);
-      }
-      lineItems.push({
-        productId: product.id,
-        description: product.name,
-        quantity: item.quantity,
-        unitPrice: product.sellPrice,
-        lineTotal: product.sellPrice.times(item.quantity),
-      });
+  return runAction(async () => {
+    if (data.needsDelivery && !data.deliveryAddress?.trim()) {
+      throw new UserError("Enter a delivery address");
     }
 
-    const subtotal = lineItems.reduce((sum, i) => sum.plus(i.lineTotal), new Prisma.Decimal(0));
-    const taxTotal = subtotal.times(data.taxRatePercent).dividedBy(100);
-    const discountTotal = new Prisma.Decimal(data.discountTotal);
-    const total = subtotal.plus(taxTotal).minus(discountTotal);
+    const order = await prisma.$transaction(async (tx) => {
+      const lineItems: {
+        productId: string;
+        description: string;
+        quantity: number;
+        unitPrice: Prisma.Decimal;
+        lineTotal: Prisma.Decimal;
+      }[] = [];
 
-    const createdOrder = await tx.order.create({
-      data: {
-        customerId: data.customerId,
-        createdById: session.user.id,
-        status: "PENDING",
-        subtotal,
-        taxTotal,
-        discountTotal,
-        total,
-        items: { create: lineItems },
-      },
-    });
+      // Combos are sold from their products' stock, so total up what the whole order needs per product.
+      const needed = new Map<string, { name: string; quantity: number; forCombos: Set<string> }>();
+      const need = (id: string, name: string, quantity: number, comboName?: string) => {
+        const entry = needed.get(id) ?? { name, quantity: 0, forCombos: new Set<string>() };
+        entry.quantity += quantity;
+        if (comboName) entry.forCombos.add(comboName);
+        needed.set(id, entry);
+      };
 
-    if (data.needsDelivery && data.deliveryAddress) {
-      await tx.delivery.create({
+      for (const item of data.items) {
+        const product = await tx.finishedProduct.findUniqueOrThrow({
+          where: { id: item.productId },
+          include: { comboItems: { include: { product: true } } },
+        });
+        if (product.isCombo) {
+          for (const line of product.comboItems) {
+            if (line.product) need(line.product.id, line.product.name, line.quantity * item.quantity, product.name);
+          }
+        } else {
+          need(product.id, product.name, item.quantity);
+        }
+        lineItems.push({
+          productId: product.id,
+          description: product.name,
+          quantity: item.quantity,
+          unitPrice: product.sellPrice,
+          lineTotal: product.sellPrice.times(item.quantity),
+        });
+      }
+
+      for (const [productId, { name, quantity, forCombos }] of needed) {
+        const decremented = await tx.finishedProduct.updateMany({
+          where: { id: productId, stockQty: { gte: quantity } },
+          data: { stockQty: { decrement: quantity } },
+        });
+        if (decremented.count === 0) {
+          const usedIn = forCombos.size ? ` (needed for ${[...forCombos].join(", ")})` : "";
+          throw new UserError(`Not enough stock for ${name}${usedIn}`);
+        }
+      }
+
+      const subtotal = lineItems.reduce((sum, i) => sum.plus(i.lineTotal), new Prisma.Decimal(0));
+      const taxTotal = subtotal.times(data.taxRatePercent).dividedBy(100);
+      const discountTotal = new Prisma.Decimal(data.discountTotal);
+      const total = subtotal.plus(taxTotal).minus(discountTotal);
+
+      const createdOrder = await tx.order.create({
         data: {
-          orderId: createdOrder.id,
           customerId: data.customerId,
-          address: data.deliveryAddress,
+          createdById: session.user.id,
           status: "PENDING",
+          subtotal,
+          taxTotal,
+          discountTotal,
+          total,
+          items: { create: lineItems },
+          stockDeductions: {
+            create: [...needed].map(([productId, { quantity }]) => ({ productId, quantity })),
+          },
         },
       });
-    }
 
-    return createdOrder;
+      if (data.needsDelivery && data.deliveryAddress) {
+        await tx.delivery.create({
+          data: {
+            orderId: createdOrder.id,
+            customerId: data.customerId,
+            address: data.deliveryAddress,
+            status: "PENDING",
+          },
+        });
+      }
+
+      return createdOrder;
+    });
+
+    revalidatePath("/dashboard/orders");
+    return { id: order.id };
   });
-
-  revalidatePath("/dashboard/orders");
-  return { id: order.id };
 }
 
 export async function confirmOrder(id: string) {
@@ -112,26 +141,34 @@ export async function cancelOrder(id: string) {
   const session = await requireSession();
   await requireSection(session, "orders");
 
-  await prisma.$transaction(async (tx) => {
-    const order = await tx.order.findUniqueOrThrow({
-      where: { id },
-      include: { items: true, invoice: true },
-    });
-    if (order.status === "CANCELLED") return;
-    if (order.invoice) {
-      throw new Error("Cannot cancel an order that already has an invoice");
-    }
-
-    for (const item of order.items) {
-      await tx.finishedProduct.update({
-        where: { id: item.productId },
-        data: { stockQty: { increment: item.quantity } },
+  return runAction(async () => {
+    await prisma.$transaction(async (tx) => {
+      const order = await tx.order.findUniqueOrThrow({
+        where: { id },
+        include: { stockDeductions: true, invoice: true },
       });
-    }
+      if (order.status === "CANCELLED") return;
+      if (order.invoice) {
+        throw new UserError("Cannot cancel an order that already has an invoice");
+      }
 
-    await tx.order.update({ where: { id }, data: { status: "CANCELLED" } });
+      // Flip status first, guarded, so a double-submit can't put the stock back twice.
+      const { count } = await tx.order.updateMany({
+        where: { id, status: { not: "CANCELLED" } },
+        data: { status: "CANCELLED" },
+      });
+      if (count === 0) return;
+
+      for (const deduction of order.stockDeductions) {
+        await tx.finishedProduct.update({
+          where: { id: deduction.productId },
+          data: { stockQty: { increment: deduction.quantity } },
+        });
+      }
+    });
+
+    revalidatePath("/dashboard/orders");
+    revalidatePath(`/dashboard/orders/${id}`);
+    return null;
   });
-
-  revalidatePath("/dashboard/orders");
-  revalidatePath(`/dashboard/orders/${id}`);
 }

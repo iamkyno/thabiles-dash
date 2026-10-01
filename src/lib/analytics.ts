@@ -7,7 +7,7 @@ export async function getDashboardMetrics() {
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
   const [products, openStockOrders, openOrdersCount, pendingDeliveriesCount, monthPayments] = await Promise.all([
-    prisma.finishedProduct.findMany({ where: { isActive: true } }),
+    prisma.finishedProduct.findMany({ where: { isActive: true, isCombo: false } }),
     prisma.stockOrder.findMany({
       where: { status: "ORDERED" },
       orderBy: { createdAt: "asc" },
@@ -77,7 +77,7 @@ export async function getTopProducts(days = 30) {
 export async function getInventoryValue(days = 30) {
   const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
   const [products, received] = await Promise.all([
-    prisma.finishedProduct.findMany({ where: { isActive: true } }),
+    prisma.finishedProduct.findMany({ where: { isActive: true, isCombo: false } }),
     prisma.stockOrder.aggregate({
       where: { status: "RECEIVED", receivedAt: { gte: since } },
       _sum: { total: true },
