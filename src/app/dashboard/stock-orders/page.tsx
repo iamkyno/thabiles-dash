@@ -16,6 +16,7 @@ import { prisma } from "@/lib/prisma";
 import { requireSession, requireSection } from "@/lib/session";
 import { formatMoney } from "@/lib/money";
 import { formatDate } from "@/lib/tz";
+import { productLabel } from "@/lib/product-label";
 import { stockOrderStatusLabels, stockOrderStatusVariants } from "./schema";
 
 export default async function StockOrdersPage() {
@@ -23,7 +24,7 @@ export default async function StockOrdersPage() {
   await requireSection(session, "stock-orders");
   const orders = await prisma.stockOrder.findMany({
     orderBy: { createdAt: "desc" },
-    include: { items: { include: { product: { select: { name: true } } } } },
+    include: { items: { include: { product: { select: { name: true, unitSize: true } } } } },
     take: 100,
   });
 
@@ -73,7 +74,7 @@ export default async function StockOrdersPage() {
                     <TableCell className="space-y-1">
                       {order.items.slice(0, 2).map((i) => (
                         <div key={i.id}>
-                          {i.product.name} <span className="whitespace-nowrap text-muted-foreground">× {i.quantity}</span>
+                          {productLabel(i.product)} <span className="whitespace-nowrap text-muted-foreground">× {i.quantity}</span>
                         </div>
                       ))}
                       {order.items.length > 2 && (

@@ -6,11 +6,9 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireSession, requireSection } from "@/lib/session";
 import { runAction, UserError } from "@/lib/action-result";
-import { Prisma } from "@/generated/prisma/client";
 import { comboSchema, type ComboFormValues } from "@/app/dashboard/products/schema";
 
 const productSchema = z.object({
-  sku: z.string().min(1, "SKU is required"),
   name: z.string().min(1, "Name is required"),
   description: z.string().optional(),
   unitSize: z.string().optional(),
@@ -67,26 +65,19 @@ async function saveCombo(id: string | null, data: ComboFormValues) {
     throw new UserError("A combo can only contain regular products");
   }
 
-  const fields = { name: data.name, sku: data.sku, sellPrice: data.sellPrice, isActive: data.isActive };
-  try {
-    if (id) {
-      await prisma.$transaction([
-        prisma.comboItem.deleteMany({ where: { comboId: id } }),
-        prisma.finishedProduct.update({
-          where: { id, isCombo: true },
-          data: { ...fields, comboItems: { create: comboLines(data) } },
-        }),
-      ]);
-    } else {
-      await prisma.finishedProduct.create({
-        data: { ...fields, isCombo: true, comboItems: { create: comboLines(data) } },
-      });
-    }
-  } catch (err) {
-    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
-      throw new UserError("That SKU is already used by another product");
-    }
-    throw err;
+  const fields = { name: data.name, sellPrice: data.sellPrice, isActive: data.isActive };
+  if (id) {
+    await prisma.$transaction([
+      prisma.comboItem.deleteMany({ where: { comboId: id } }),
+      prisma.finishedProduct.update({
+        where: { id, isCombo: true },
+        data: { ...fields, comboItems: { create: comboLines(data) } },
+      }),
+    ]);
+  } else {
+    await prisma.finishedProduct.create({
+      data: { ...fields, isCombo: true, comboItems: { create: comboLines(data) } },
+    });
   }
 
   revalidatePath("/dashboard/products");

@@ -153,7 +153,7 @@ export function OrderForm({ customers, products }: { customers: Option[]; produc
                           <SelectContent>
                             {products.map((p) => (
                               <SelectItem key={p.id} value={p.id}>
-                                {p.name} ({p.stockQty} in stock) — {formatMoney(p.sellPrice)}
+                                {p.name} · {p.stockQty} in stock · {formatMoney(p.sellPrice)}
                               </SelectItem>
                             ))}
                           </SelectContent>

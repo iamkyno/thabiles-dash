@@ -12,6 +12,7 @@ import { prisma } from "@/lib/prisma";
 import { requireSession, requireSection } from "@/lib/session";
 import { formatMoney } from "@/lib/money";
 import { comboCanMake, describeComboLine } from "@/lib/combos";
+import { productLabel } from "@/lib/product-label";
 import { ProductFormDialog } from "./product-form-dialog";
 import { ComboFormDialog } from "./combo-form-dialog";
 import { DeactivateProductButton } from "./deactivate-product-button";
@@ -20,12 +21,12 @@ export default async function ProductsPage() {
   const session = await requireSession();
   await requireSection(session, "products");
   const all = await prisma.finishedProduct.findMany({
-    orderBy: { name: "asc" },
+    orderBy: [{ name: "asc" }, { unitSize: "asc" }],
     include: { comboItems: { orderBy: { position: "asc" }, include: { product: true } } },
   });
   const products = all.filter((p) => !p.isCombo);
   const combos = all.filter((p) => p.isCombo);
-  const activeProductOptions = products.filter((p) => p.isActive).map((p) => ({ id: p.id, name: p.name }));
+  const activeProductOptions = products.filter((p) => p.isActive).map((p) => ({ id: p.id, name: productLabel(p) }));
 
   return (
     <div className="space-y-6">
@@ -53,7 +54,6 @@ export default async function ProductsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="hidden sm:table-cell">SKU</TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead className="hidden text-right whitespace-nowrap sm:table-cell">Price</TableHead>
                   <TableHead className="text-right whitespace-nowrap">Stock</TableHead>
@@ -63,7 +63,6 @@ export default async function ProductsPage() {
               <TableBody>
                 {products.map((product) => (
                   <TableRow key={product.id} className={!product.isActive ? "opacity-50" : undefined}>
-                    <TableCell className="hidden font-mono text-xs sm:table-cell">{product.sku}</TableCell>
                     <TableCell className="font-medium">
                       {product.name}
                       {product.unitSize && <span className="text-muted-foreground"> ({product.unitSize})</span>}
@@ -92,7 +91,6 @@ export default async function ProductsPage() {
                           mode="edit"
                           productId={product.id}
                           defaultValues={{
-                            sku: product.sku,
                             name: product.name,
                             description: product.description ?? "",
                             unitSize: product.unitSize ?? "",
@@ -178,10 +176,9 @@ export default async function ProductsPage() {
                             comboId={combo.id}
                             productOptions={products
                               .filter((p) => p.isActive || lineIds.has(p.id))
-                              .map((p) => ({ id: p.id, name: p.name }))}
+                              .map((p) => ({ id: p.id, name: productLabel(p) }))}
                             defaultValues={{
                               name: combo.name,
-                              sku: combo.sku,
                               sellPrice: Number(combo.sellPrice),
                               isActive: combo.isActive,
                               products: combo.comboItems.flatMap((l) =>

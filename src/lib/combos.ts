@@ -1,7 +1,9 @@
+import { productLabel } from "@/lib/product-label";
+
 type ComboLine = {
   quantity: number;
   description: string | null;
-  product: { name: string; stockQty: number } | null;
+  product: { name: string; unitSize: string | null; stockQty: number } | null;
 };
 
 /** How many of a combo current stock can make: limited by its scarcest product. Text-only lines don't limit it. */
@@ -11,5 +13,5 @@ export function comboCanMake(lines: ComboLine[]) {
 }
 
 export function describeComboLine(line: ComboLine) {
-  return `${line.quantity} × ${line.product?.name ?? line.description}`;
+  return `${line.quantity} × ${line.product ? productLabel(line.product) : line.description}`;
 }

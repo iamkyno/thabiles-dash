@@ -47,7 +47,6 @@ export function ProductFormDialog({
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
     defaultValues: defaultValues ?? {
-      sku: "",
       name: "",
       description: "",
       unitSize: "",
@@ -97,13 +96,13 @@ export function ProductFormDialog({
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-[2fr_1fr]">
               <FormField
                 control={form.control}
-                name="sku"
+                name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>SKU</FormLabel>
+                    <FormLabel>Name</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -118,26 +117,13 @@ export function ProductFormDialog({
                   <FormItem>
                     <FormLabel>Unit size</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g. 200ml" {...field} />
+                      <Input placeholder="e.g. 2kg or 1L" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Name</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
             <FormField
               control={form.control}
               name="description"

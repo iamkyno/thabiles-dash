@@ -93,7 +93,7 @@ export function StockOrderForm({ products }: { products: ProductOption[] }) {
                         <SelectContent>
                           {products.map((p) => (
                             <SelectItem key={p.id} value={p.id}>
-                              {p.name} ({p.stockQty} in stock)
+                              {p.name} · {p.stockQty} in stock
                             </SelectItem>
                           ))}
                         </SelectContent>

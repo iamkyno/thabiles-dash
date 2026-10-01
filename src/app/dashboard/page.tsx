@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { requireSession } from "@/lib/session";
 import { getDashboardMetrics, getRevenueTrend } from "@/lib/analytics";
 import { formatMoney } from "@/lib/money";
+import { productLabel } from "@/lib/product-label";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { RevenueChart } from "@/components/dashboard/revenue-chart";
 
@@ -58,7 +59,7 @@ export default async function DashboardHomePage() {
                     href="/dashboard/products"
                     className="flex items-center justify-between gap-3 rounded-lg border p-3 text-sm hover:bg-accent"
                   >
-                    <span className="font-medium">{p.name}</span>
+                    <span className="font-medium">{productLabel(p)}</span>
                     <Badge variant="warning">{p.stockQty} left</Badge>
                   </Link>
                 ))}

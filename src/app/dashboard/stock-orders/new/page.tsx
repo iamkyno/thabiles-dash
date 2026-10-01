@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { prisma } from "@/lib/prisma";
 import { requireSession, requireSection } from "@/lib/session";
+import { productLabel } from "@/lib/product-label";
 import { StockOrderForm } from "../stock-order-form";
 
 export default async function NewStockOrderPage() {
@@ -10,7 +11,10 @@ export default async function NewStockOrderPage() {
   await requireSection(session, "stock-orders");
 
   const [products, lastCosts] = await Promise.all([
-    prisma.finishedProduct.findMany({ where: { isActive: true, isCombo: false }, orderBy: { name: "asc" } }),
+    prisma.finishedProduct.findMany({
+      where: { isActive: true, isCombo: false },
+      orderBy: [{ name: "asc" }, { unitSize: "asc" }],
+    }),
     prisma.stockOrderItem.findMany({
       distinct: ["productId"],
       orderBy: { stockOrder: { createdAt: "desc" } },
@@ -41,7 +45,7 @@ export default async function NewStockOrderPage() {
         <StockOrderForm
           products={products.map((p) => ({
             id: p.id,
-            name: p.name,
+            name: productLabel(p),
             stockQty: p.stockQty,
             lastUnitCost: lastCostByProduct.get(p.id) ?? null,
           }))}

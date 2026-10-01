@@ -17,6 +17,7 @@ import { prisma } from "@/lib/prisma";
 import { requireSession, requireSection } from "@/lib/session";
 import { formatMoney } from "@/lib/money";
 import { formatDateTime } from "@/lib/tz";
+import { productLabel } from "@/lib/product-label";
 import { stockOrderStatusLabels, stockOrderStatusVariants } from "../schema";
 import { StockOrderActions } from "../stock-order-actions";
 
@@ -76,7 +77,7 @@ export default async function StockOrderDetailPage({ params }: PageProps<"/dashb
             <TableBody>
               {order.items.map((item) => (
                 <TableRow key={item.id}>
-                  <TableCell>{item.product.name}</TableCell>
+                  <TableCell>{productLabel(item.product)}</TableCell>
                   <TableCell className="text-right whitespace-nowrap">{item.quantity}</TableCell>
                   <TableCell className="hidden text-right whitespace-nowrap sm:table-cell">
                     {formatMoney(item.unitCost)}

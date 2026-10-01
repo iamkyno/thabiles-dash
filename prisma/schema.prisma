@@ -133,7 +133,6 @@ enum PaymentMethod {
 
 model FinishedProduct {
   id           String   @id @default(cuid())
-  sku          String   @unique
   name         String
   description  String?
   unitSize     String?

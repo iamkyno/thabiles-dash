@@ -1,7 +1,6 @@
 import { z } from "zod";
 
 export const productSchema = z.object({
-  sku: z.string().min(1, "SKU is required"),
   name: z.string().min(1, "Name is required"),
   description: z.string().optional(),
   unitSize: z.string().optional(),
@@ -15,7 +14,6 @@ export type ProductFormValues = z.infer<typeof productSchema>;
 
 export const comboSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
-  sku: z.string().trim().min(1, "SKU is required"),
   sellPrice: z.number().min(0),
   isActive: z.boolean(),
   products: z

@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { requireSession, requireSection } from "@/lib/session";
 import { comboCanMake } from "@/lib/combos";
+import { productLabel } from "@/lib/product-label";
 import { OrderForm } from "../order-form";
 
 export default async function NewOrderPage() {
@@ -11,7 +12,7 @@ export default async function NewOrderPage() {
     prisma.customer.findMany({ orderBy: { name: "asc" } }),
     prisma.finishedProduct.findMany({
       where: { isActive: true },
-      orderBy: { name: "asc" },
+      orderBy: [{ name: "asc" }, { unitSize: "asc" }],
       include: { comboItems: { include: { product: true } } },
     }),
   ]);
@@ -29,7 +30,7 @@ export default async function NewOrderPage() {
         customers={customers.map((c) => ({ id: c.id, label: c.name, address: c.address ?? undefined }))}
         products={sellable.map((p) => ({
           id: p.id,
-          name: p.name,
+          name: productLabel(p),
           sellPrice: Number(p.sellPrice),
           stockQty: p.available,
         }))}

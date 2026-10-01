@@ -6,6 +6,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { requireSession, requireSection } from "@/lib/session";
 import { runAction, UserError } from "@/lib/action-result";
+import { productLabel } from "@/lib/product-label";
 import { Prisma } from "@/generated/prisma/client";
 
 const orderSchema = z.object({
@@ -56,14 +57,14 @@ export async function createOrder(input: OrderInput) {
         });
         if (product.isCombo) {
           for (const line of product.comboItems) {
-            if (line.product) need(line.product.id, line.product.name, line.quantity * item.quantity, product.name);
+            if (line.product) need(line.product.id, productLabel(line.product), line.quantity * item.quantity, product.name);
           }
         } else {
-          need(product.id, product.name, item.quantity);
+          need(product.id, productLabel(product), item.quantity);
         }
         lineItems.push({
           productId: product.id,
-          description: product.name,
+          description: productLabel(product),
           quantity: item.quantity,
           unitPrice: product.sellPrice,
           lineTotal: product.sellPrice.times(item.quantity),

@@ -1,6 +1,7 @@
 import "server-only";
 
 import { prisma } from "@/lib/prisma";
+import { productLabel } from "@/lib/product-label";
 
 export async function getDashboardMetrics() {
   const now = new Date();
@@ -65,7 +66,7 @@ export async function getTopProducts(days = 30) {
 
   const map = new Map<string, { name: string; revenue: number; qty: number }>();
   for (const item of items) {
-    const cur = map.get(item.product.id) ?? { name: item.product.name, revenue: 0, qty: 0 };
+    const cur = map.get(item.product.id) ?? { name: productLabel(item.product), revenue: 0, qty: 0 };
     cur.revenue += Number(item.lineTotal);
     cur.qty += item.quantity;
     map.set(item.product.id, cur);

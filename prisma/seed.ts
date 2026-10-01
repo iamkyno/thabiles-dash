@@ -78,18 +78,17 @@ async function main() {
     allowedSections: ALL_SECTIONS,
   });
 
-  await prisma.finishedProduct.upsert({
-    where: { sku: "PROD-WHIP-BUTTER-200" },
-    update: {},
-    create: {
-      sku: "PROD-WHIP-BUTTER-200",
-      name: "Whipped Shea Body Butter (200ml)",
-      unitSize: "200ml",
-      sellPrice: "180.00",
-      stockQty: 24,
-      reorderLevel: 10,
-    },
-  });
+  const demoProduct = { name: "Whipped Shea Body Butter", unitSize: "200ml" };
+  if (!(await prisma.finishedProduct.findFirst({ where: demoProduct }))) {
+    await prisma.finishedProduct.create({
+      data: {
+        ...demoProduct,
+        sellPrice: "180.00",
+        stockQty: 24,
+        reorderLevel: 10,
+      },
+    });
+  }
 
   const customers = await Promise.all(
     [
