@@ -264,3 +264,49 @@ export async function cancelOrder(id: string) {
     return null;
   });
 }
+
+export async function deleteOrder(id: string) {
+  const session = await requireSession();
+  await requireSection(session, "orders");
+
+  return runAction(async () => {
+    if (session.user.role !== "ADMIN" && session.user.role !== "DEVELOPER") {
+      throw new UserError("Only an Admin or Developer can delete orders");
+    }
+
+    await prisma.$transaction(async (tx) => {
+      // Lock the order row first, so an edit, cancel or second delete can't interleave.
+      const { count } = await tx.order.updateMany({ where: { id }, data: { updatedAt: new Date() } });
+      if (count === 0) throw new UserError("This order has already been deleted");
+
+      const order = await tx.order.findUniqueOrThrow({
+        where: { id },
+        include: { stockDeductions: true, invoice: true },
+      });
+
+      // A cancelled order already put its stock back.
+      if (order.status !== "CANCELLED") {
+        for (const deduction of order.stockDeductions) {
+          await tx.finishedProduct.update({
+            where: { id: deduction.productId },
+            data: { stockQty: { increment: deduction.quantity } },
+          });
+        }
+      }
+
+      if (order.invoice) {
+        await tx.payment.deleteMany({ where: { invoiceId: order.invoice.id } });
+        await tx.invoice.delete({ where: { id: order.invoice.id } });
+      }
+      await tx.delivery.deleteMany({ where: { orderId: id } });
+      await tx.order.delete({ where: { id } }); // its lines and stock records go with it
+    });
+
+    revalidatePath("/dashboard/orders");
+    revalidatePath("/dashboard/invoices");
+    revalidatePath("/dashboard/deliveries");
+    revalidatePath("/dashboard/products");
+    revalidatePath("/dashboard");
+    return null;
+  });
+}

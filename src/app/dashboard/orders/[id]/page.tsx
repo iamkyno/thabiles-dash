@@ -20,6 +20,7 @@ import { formatDateTime } from "@/lib/tz";
 import { orderStatusVariants } from "../schema";
 import { OrderActions } from "../order-actions";
 import { GenerateInvoiceButton } from "../generate-invoice-button";
+import { DeleteOrderButton } from "../delete-order-button";
 
 export default async function OrderDetailPage({ params }: PageProps<"/dashboard/orders/[id]">) {
   const session = await requireSession();
@@ -28,11 +29,18 @@ export default async function OrderDetailPage({ params }: PageProps<"/dashboard/
 
   const order = await prisma.order.findUnique({
     where: { id },
-    include: { customer: true, items: true, invoice: true, delivery: true, createdBy: true },
+    include: {
+      customer: true,
+      items: true,
+      invoice: { include: { _count: { select: { payments: true } } } },
+      delivery: true,
+      createdBy: true,
+    },
   });
 
   if (!order) notFound();
   const canEdit = order.status !== "CANCELLED" && !order.invoice;
+  const canDelete = session.user.role === "ADMIN" || session.user.role === "DEVELOPER";
 
   return (
     <div className="space-y-6">
@@ -112,6 +120,21 @@ export default async function OrderDetailPage({ params }: PageProps<"/dashboard/
             </Button>
           ) : (
             order.status !== "CANCELLED" && <GenerateInvoiceButton orderId={order.id} />
+          )}
+          {canDelete && (
+            <DeleteOrderButton
+              orderId={order.id}
+              orderSeq={order.orderSeq}
+              returnsStock={order.status !== "CANCELLED"}
+              hasDelivery={Boolean(order.delivery)}
+              invoice={
+                order.invoice && {
+                  number: `INV-${order.invoice.invoiceSeq}`,
+                  paymentCount: order.invoice._count.payments,
+                  amountPaid: Number(order.invoice.amountPaid),
+                }
+              }
+            />
           )}
           {order.invoice && order.status !== "CANCELLED" && (
             <p className="text-sm text-muted-foreground sm:basis-full">
