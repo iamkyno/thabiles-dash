@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Beaker, MapPinned, PackageX, Wallet } from "lucide-react";
+import { MapPinned, PackageX, ShoppingCart, Wallet } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,13 +22,13 @@ export default async function DashboardHomePage() {
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Revenue this month" value={formatMoney(metrics.monthRevenue)} icon={Wallet} />
-        <StatCard label="Open orders" value={String(metrics.openOrdersCount)} icon={Beaker} />
+        <StatCard label="Open orders" value={String(metrics.openOrdersCount)} icon={ShoppingCart} />
         <StatCard label="Pending deliveries" value={String(metrics.pendingDeliveriesCount)} icon={MapPinned} />
         <StatCard
           label="Low stock alerts"
-          value={String(metrics.lowStockMaterials.length + metrics.lowStockProducts.length)}
+          value={String(metrics.lowStockProducts.length)}
           icon={PackageX}
-          tone={metrics.lowStockMaterials.length + metrics.lowStockProducts.length > 0 ? "warning" : "default"}
+          tone={metrics.lowStockProducts.length > 0 ? "warning" : "default"}
         />
       </div>
 
@@ -44,34 +44,7 @@ export default async function DashboardHomePage() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Low material stock</CardTitle>
-            <CardDescription>Ingredients and packaging at or below reorder level.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {metrics.lowStockMaterials.length === 0 ? (
-              <p className="text-sm text-muted-foreground">All materials are well stocked.</p>
-            ) : (
-              <div className="space-y-2">
-                {metrics.lowStockMaterials.map((m) => (
-                  <Link
-                    key={m.id}
-                    href="/dashboard/materials"
-                    className="flex items-center justify-between rounded-lg border p-3 text-sm hover:bg-accent"
-                  >
-                    <span className="font-medium">{m.name}</span>
-                    <Badge variant="warning">
-                      {m.stockQty.toString()} {m.unit}
-                    </Badge>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Low finished goods stock</CardTitle>
+            <CardTitle>Low product stock</CardTitle>
             <CardDescription>Products at or below reorder level.</CardDescription>
           </CardHeader>
           <CardContent>
@@ -83,10 +56,37 @@ export default async function DashboardHomePage() {
                   <Link
                     key={p.id}
                     href="/dashboard/products"
-                    className="flex items-center justify-between rounded-lg border p-3 text-sm hover:bg-accent"
+                    className="flex items-center justify-between gap-3 rounded-lg border p-3 text-sm hover:bg-accent"
                   >
                     <span className="font-medium">{p.name}</span>
                     <Badge variant="warning">{p.stockQty} left</Badge>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Stock orders awaiting delivery</CardTitle>
+            <CardDescription>Mark them received when they arrive to update product stock.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {metrics.openStockOrders.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Nothing on order right now.</p>
+            ) : (
+              <div className="space-y-2">
+                {metrics.openStockOrders.map((o) => (
+                  <Link
+                    key={o.id}
+                    href={`/dashboard/stock-orders/${o.id}`}
+                    className="flex items-center justify-between gap-3 rounded-lg border p-3 text-sm hover:bg-accent"
+                  >
+                    <span className="font-medium">Stock order #{o.stockOrderSeq}</span>
+                    <Badge variant="warning">
+                      {o.items.reduce((sum, i) => sum + i.quantity, 0)} units
+                    </Badge>
                   </Link>
                 ))}
               </div>

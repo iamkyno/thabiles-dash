@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -19,10 +17,7 @@ import { DeactivateProductButton } from "./deactivate-product-button";
 export default async function ProductsPage() {
   const session = await requireSession();
   await requireSection(session, "products");
-  const products = await prisma.finishedProduct.findMany({
-    orderBy: { name: "asc" },
-    include: { recipe: true },
-  });
+  const products = await prisma.finishedProduct.findMany({ orderBy: { name: "asc" } });
 
   return (
     <div className="space-y-6">
@@ -51,7 +46,6 @@ export default async function ProductsPage() {
                   <TableHead>Name</TableHead>
                   <TableHead className="text-right whitespace-nowrap">Price</TableHead>
                   <TableHead className="text-right whitespace-nowrap">Stock</TableHead>
-                  <TableHead className="hidden sm:table-cell">Recipe</TableHead>
                   <TableHead className="w-24" />
                 </TableRow>
               </TableHeader>
@@ -74,17 +68,6 @@ export default async function ProductsPage() {
                         <Badge variant="warning">{product.stockQty}</Badge>
                       ) : (
                         product.stockQty
-                      )}
-                    </TableCell>
-                    <TableCell className="hidden sm:table-cell">
-                      {product.recipe ? (
-                        <Link href={`/dashboard/recipes/${product.id}`} className="text-sm hover:underline">
-                          View recipe
-                        </Link>
-                      ) : (
-                        <Link href={`/dashboard/recipes/${product.id}`} className="text-sm text-muted-foreground hover:underline">
-                          Set up recipe
-                        </Link>
                       )}
                     </TableCell>
                     <TableCell>

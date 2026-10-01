@@ -4,12 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
-  Truck,
-  Beaker,
   ClipboardList,
   Package,
-  FlaskConical,
-  Factory,
   Users,
   ShoppingCart,
   MapPinned,
@@ -25,12 +21,8 @@ import { Badge } from "@/components/ui/badge";
 
 const navItems = [
   { href: "/dashboard", label: "Overview", icon: LayoutDashboard, key: null },
-  { href: "/dashboard/suppliers", label: "Suppliers", icon: Truck, key: "suppliers" },
-  { href: "/dashboard/materials", label: "Materials", icon: Beaker, key: "materials" },
-  { href: "/dashboard/purchase-orders", label: "Purchase orders", icon: ClipboardList, key: "purchase-orders" },
   { href: "/dashboard/products", label: "Products", icon: Package, key: "products" },
-  { href: "/dashboard/recipes", label: "Recipes", icon: FlaskConical, key: "recipes" },
-  { href: "/dashboard/production", label: "Production", icon: Factory, key: "production" },
+  { href: "/dashboard/stock-orders", label: "Stock orders", icon: ClipboardList, key: "stock-orders" },
   { href: "/dashboard/customers", label: "Customers", icon: Users, key: "customers" },
   { href: "/dashboard/orders", label: "Orders", icon: ShoppingCart, key: "orders" },
   { href: "/dashboard/deliveries", label: "Deliveries", icon: MapPinned, key: "deliveries" },

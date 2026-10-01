@@ -1,10 +1,6 @@
 export const APP_SECTIONS = [
-  { key: "suppliers", label: "Suppliers" },
-  { key: "materials", label: "Materials" },
-  { key: "purchase-orders", label: "Purchase orders" },
   { key: "products", label: "Products" },
-  { key: "recipes", label: "Recipes" },
-  { key: "production", label: "Production" },
+  { key: "stock-orders", label: "Stock orders" },
   { key: "customers", label: "Customers" },
   { key: "orders", label: "Orders" },
   { key: "deliveries", label: "Deliveries" },

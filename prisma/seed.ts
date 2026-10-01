@@ -87,75 +87,7 @@ async function main() {
     allowedSections: ALL_SECTIONS,
   });
 
-  const suppliers = await Promise.all(
-    [
-      { name: "Cape Botanicals", contactName: "Riaan", phone: "+27 21 555 0101", email: "sales@capebotanicals.test" },
-      { name: "PureGlass Packaging", contactName: "Aisha", phone: "+27 11 555 0202", email: "orders@pureglass.test" },
-    ].map((s) =>
-      prisma.supplier.findFirst({ where: { name: s.name } }).then((existing) =>
-        existing ? existing : prisma.supplier.create({ data: s })
-      )
-    )
-  );
-
-  const materials = await Promise.all(
-    [
-      {
-        sku: "ING-SHEA-BUTTER",
-        name: "Raw Shea Butter",
-        type: "RAW_INGREDIENT" as const,
-        unit: "KG" as const,
-        costPerUnit: "180.0000",
-        stockQty: "12.500",
-        reorderLevel: "3.000",
-        primarySupplierId: suppliers[0].id,
-      },
-      {
-        sku: "ING-COCONUT-OIL",
-        name: "Cold-Pressed Coconut Oil",
-        type: "RAW_INGREDIENT" as const,
-        unit: "L" as const,
-        costPerUnit: "95.0000",
-        stockQty: "8.000",
-        reorderLevel: "2.000",
-        primarySupplierId: suppliers[0].id,
-      },
-      {
-        sku: "ING-LAVENDER-EO",
-        name: "Lavender Essential Oil",
-        type: "RAW_INGREDIENT" as const,
-        unit: "ML" as const,
-        costPerUnit: "1.8000",
-        stockQty: "500.000",
-        reorderLevel: "100.000",
-        primarySupplierId: suppliers[0].id,
-      },
-      {
-        sku: "PKG-JAR-200ML",
-        name: "200ml Glass Jar",
-        type: "PACKAGING" as const,
-        unit: "PIECE" as const,
-        costPerUnit: "8.5000",
-        stockQty: "150.000",
-        reorderLevel: "50.000",
-        primarySupplierId: suppliers[1].id,
-      },
-      {
-        sku: "PKG-LABEL-STD",
-        name: "Standard Product Label",
-        type: "PACKAGING" as const,
-        unit: "PIECE" as const,
-        costPerUnit: "1.2000",
-        stockQty: "300.000",
-        reorderLevel: "100.000",
-        primarySupplierId: suppliers[1].id,
-      },
-    ].map((m) =>
-      prisma.material.upsert({ where: { sku: m.sku }, update: {}, create: m })
-    )
-  );
-
-  const product = await prisma.finishedProduct.upsert({
+  await prisma.finishedProduct.upsert({
     where: { sku: "PROD-WHIP-BUTTER-200" },
     update: {},
     create: {
@@ -167,26 +99,6 @@ async function main() {
       reorderLevel: 10,
     },
   });
-
-  const existingRecipe = await prisma.recipe.findUnique({ where: { productId: product.id } });
-  const recipe =
-    existingRecipe ??
-    (await prisma.recipe.create({
-      data: {
-        productId: product.id,
-        yieldQuantity: 10,
-        instructions: "Whip shea butter and coconut oil until fluffy, blend in lavender oil, jar and label.",
-        items: {
-          create: [
-            { materialId: materials[0].id, quantityPerBatch: "2.000" },
-            { materialId: materials[1].id, quantityPerBatch: "0.500" },
-            { materialId: materials[2].id, quantityPerBatch: "30.000" },
-            { materialId: materials[3].id, quantityPerBatch: "10.000" },
-            { materialId: materials[4].id, quantityPerBatch: "10.000" },
-          ],
-        },
-      },
-    }));
 
   const customers = await Promise.all(
     [
@@ -204,7 +116,6 @@ async function main() {
   console.log(`Developer login: developer@thabilesnaturals.test / ${DEV_PASSWORD}`);
   console.log(`Staff login: sipho@thabilesnaturals.test / ${DEV_PASSWORD}`);
   void owner;
-  void recipe;
   void customers;
 }
 

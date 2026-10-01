@@ -28,7 +28,7 @@ export default async function ReportsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold">Reports</h1>
-        <p className="text-muted-foreground">Revenue, inventory and delivery performance.</p>
+        <p className="text-muted-foreground">Revenue, stock and delivery performance.</p>
       </div>
 
       <Card>
@@ -43,16 +43,20 @@ export default async function ReportsPage() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Inventory value</CardTitle>
+            <CardTitle>Inventory</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Raw materials (at cost)</span>
-              <span className="font-medium">{formatMoney(inventoryValue.rawMaterialsCost)}</span>
+            <div className="flex justify-between gap-4">
+              <span className="text-muted-foreground">Units in stock</span>
+              <span className="font-medium">{inventoryValue.unitsInStock}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Finished goods (at retail)</span>
-              <span className="font-medium">{formatMoney(inventoryValue.finishedGoodsRetailValue)}</span>
+            <div className="flex justify-between gap-4">
+              <span className="text-muted-foreground">Stock value (at selling price)</span>
+              <span className="font-medium">{formatMoney(inventoryValue.retailValue)}</span>
+            </div>
+            <div className="flex justify-between gap-4">
+              <span className="text-muted-foreground">Stock received, last 30 days (at cost)</span>
+              <span className="font-medium">{formatMoney(inventoryValue.recentStockCost)}</span>
             </div>
           </CardContent>
         </Card>

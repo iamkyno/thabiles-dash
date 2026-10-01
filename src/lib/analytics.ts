@@ -6,24 +6,25 @@ export async function getDashboardMetrics() {
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-  const [materials, products, openOrdersCount, pendingDeliveriesCount, monthPayments] = await Promise.all([
-    prisma.material.findMany({ where: { isActive: true } }),
+  const [products, openStockOrders, openOrdersCount, pendingDeliveriesCount, monthPayments] = await Promise.all([
     prisma.finishedProduct.findMany({ where: { isActive: true } }),
+    prisma.stockOrder.findMany({
+      where: { status: "ORDERED" },
+      orderBy: { createdAt: "asc" },
+      include: { items: { select: { quantity: true } } },
+    }),
     prisma.order.count({ where: { status: { in: ["PENDING", "CONFIRMED"] } } }),
     prisma.delivery.count({ where: { status: { in: ["PENDING", "IN_TRANSIT"] } } }),
     prisma.payment.aggregate({ where: { paidAt: { gte: startOfMonth } }, _sum: { amount: true } }),
   ]);
 
-  const lowStockMaterials = materials
-    .filter((m) => Number(m.stockQty) <= Number(m.reorderLevel))
-    .sort((a, b) => Number(a.stockQty) - Number(b.stockQty));
   const lowStockProducts = products
     .filter((p) => p.stockQty <= p.reorderLevel)
     .sort((a, b) => a.stockQty - b.stockQty);
 
   return {
-    lowStockMaterials,
     lowStockProducts,
+    openStockOrders,
     openOrdersCount,
     pendingDeliveriesCount,
     monthRevenue: Number(monthPayments._sum.amount ?? 0),
@@ -73,16 +74,20 @@ export async function getTopProducts(days = 30) {
   return [...map.values()].sort((a, b) => b.revenue - a.revenue).slice(0, 5);
 }
 
-export async function getInventoryValue() {
-  const [materials, products] = await Promise.all([
-    prisma.material.findMany({ where: { isActive: true } }),
+export async function getInventoryValue(days = 30) {
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+  const [products, received] = await Promise.all([
     prisma.finishedProduct.findMany({ where: { isActive: true } }),
+    prisma.stockOrder.aggregate({
+      where: { status: "RECEIVED", receivedAt: { gte: since } },
+      _sum: { total: true },
+    }),
   ]);
 
-  const rawMaterialsCost = materials.reduce((sum, m) => sum + Number(m.stockQty) * Number(m.costPerUnit), 0);
-  const finishedGoodsRetailValue = products.reduce((sum, p) => sum + p.stockQty * Number(p.sellPrice), 0);
+  const retailValue = products.reduce((sum, p) => sum + p.stockQty * Number(p.sellPrice), 0);
+  const unitsInStock = products.reduce((sum, p) => sum + p.stockQty, 0);
 
-  return { rawMaterialsCost, finishedGoodsRetailValue };
+  return { retailValue, unitsInStock, recentStockCost: Number(received._sum.total ?? 0) };
 }
 
 export async function getDeliveryStatusBreakdown() {

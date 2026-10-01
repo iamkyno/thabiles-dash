@@ -1,6 +1,6 @@
 # TSC-Thabiles Skin Care — Operations Dashboard
 
-A management dashboard for a natural beauty products manufacturer: suppliers, raw ingredient & packaging inventory, purchase orders with receiving, product recipes (bill of materials), production batches, customer sales orders, deliveries, invoicing and payments, and a reporting dashboard.
+A management dashboard for a natural beauty products business: product stock, stock orders (restocking with cost tracking), customer sales orders, deliveries, invoicing and payments, and a reporting dashboard.
 
 ## Stack
 
@@ -22,7 +22,7 @@ A management dashboard for a natural beauty products manufacturer: suppliers, ra
    npx prisma migrate dev
    npx prisma generate
    ```
-4. Seed sample data (creates an owner + 2 staff accounts, sample suppliers/materials/a finished product with recipe/customers):
+4. Seed sample data (creates an admin, a developer and 2 staff accounts, a sample product and customers):
    ```bash
    npx tsx prisma/seed.ts
    ```
@@ -38,14 +38,12 @@ Point `DATABASE_URL` at your production PostgreSQL database — Render's own man
 
 `npm run build` runs `prisma generate` (via `postinstall`), applies pending migrations with `prisma migrate deploy` (via `prebuild`), then runs the seed script (via `postbuild`) — so a plain `npm install && npm run build` deploy step (e.g. on Render, with the build command `npm install; npm run build`) migrates and seeds the database automatically. The seed script is idempotent (upsert-based), so it's safe to run on every deploy, not just the first.
 
-## How the manufacturing flow fits together
+## How the flow fits together
 
-1. **Suppliers & Materials** — set up raw ingredients/packaging with a canonical unit of measure each.
-2. **Purchase orders** — order materials from a supplier; receiving stock updates `Material.stockQty` and recalculates `costPerUnit` via a moving average.
-3. **Products & Recipes** — a `FinishedProduct` has one `Recipe` (bill of materials) defining which materials, and how much of each, go into one batch yielding N units.
-4. **Production batches** — planning a batch, then completing it consumes materials (scaled from the recipe to the actual quantity produced, guarded against insufficient stock) and increases finished-goods stock. Each material's cost is snapshotted onto the batch at completion time so historical batch costs don't drift if ingredient prices change later.
-5. **Orders & Deliveries** — customer orders decrement finished-goods stock (guarded); an order can optionally have a delivery tracked through pending → in transit → delivered.
-6. **Invoicing** — generate an invoice from a fulfilled order, record payments, and view/print it at `/print/invoices/[id]` (browser print-to-PDF, no headless-browser dependency).
+1. **Products** — each product has a selling price, a stock quantity and a reorder level (low-stock products are flagged on the Overview).
+2. **Stock orders** — order more of one or more products, recording quantity and unit cost. Marking a stock order as received adds the quantities to each product's stock; an order can be cancelled any time before it's received.
+3. **Orders & Deliveries** — customer orders decrement product stock (guarded); an order can optionally have a delivery tracked through pending → in transit → delivered.
+4. **Invoicing** — generate an invoice from a fulfilled order, record payments, and view/print it at `/print/invoices/[id]` (browser print-to-PDF, no headless-browser dependency).
 
 ## Notes
 
