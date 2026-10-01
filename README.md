@@ -40,7 +40,7 @@ Point `DATABASE_URL` at your production PostgreSQL database — Render's own man
 
 ## How the flow fits together
 
-1. **Products** — each product has a selling price, a stock quantity and a reorder level (low-stock products are flagged on the Overview).
+1. **Products** — each product has a price, a stock quantity and a low-stock alert level (products at or below it are flagged on the Overview).
 2. **Stock orders** — order more of one or more products, recording quantity and unit cost. Marking a stock order as received adds the quantities to each product's stock; an order can be cancelled any time before it's received.
 3. **Combos** — a combo is sold like a product at its own price but has no stock of its own: selling one takes each of its products out of stock (other listed items, such as bottles and containers, aren't stock-counted), and the Products page shows how many current stock can make. Each order records exactly what it took from stock, so cancelling it puts that back even if the combo has been edited since.
 4. **Orders & Deliveries** — customer orders decrement product stock (guarded); an order can optionally have a delivery tracked through pending → in transit → delivered.

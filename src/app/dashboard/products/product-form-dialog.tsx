@@ -137,10 +137,15 @@ export function ProductFormDialog({
                 </FormItem>
               )}
             />
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-              <NumberField control={form.control} name="sellPrice" label="Sell price" step="0.01" />
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <NumberField control={form.control} name="sellPrice" label="Price" step="0.01" />
               <NumberField control={form.control} name="stockQty" label="Stock" />
-              <NumberField control={form.control} name="reorderLevel" label="Reorder level" />
+              <NumberField
+                control={form.control}
+                name="reorderLevel"
+                label="Low-stock alert at"
+                description="Flagged as low stock when stock drops to this number. 0 means only when sold out."
+              />
             </div>
             <FormField
               control={form.control}

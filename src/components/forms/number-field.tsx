@@ -3,7 +3,7 @@
 import type { Control, FieldPath, FieldValues } from "react-hook-form";
 
 import { Input } from "@/components/ui/input";
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 
 export function NumberField<TFieldValues extends FieldValues>({
   control,
@@ -11,12 +11,14 @@ export function NumberField<TFieldValues extends FieldValues>({
   label,
   step = "1",
   min = "0",
+  description,
 }: {
   control: Control<TFieldValues>;
   name: FieldPath<TFieldValues>;
   label: string;
   step?: string;
   min?: string;
+  description?: string;
 }) {
   return (
     <FormField
@@ -37,6 +39,7 @@ export function NumberField<TFieldValues extends FieldValues>({
               ref={field.ref}
             />
           </FormControl>
+          {description && <FormDescription>{description}</FormDescription>}
           <FormMessage />
         </FormItem>
       )}

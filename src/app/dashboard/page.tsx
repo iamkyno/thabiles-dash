@@ -46,7 +46,7 @@ export default async function DashboardHomePage() {
         <Card>
           <CardHeader>
             <CardTitle>Low product stock</CardTitle>
-            <CardDescription>Products at or below reorder level.</CardDescription>
+            <CardDescription>Products at or below their low-stock alert level.</CardDescription>
           </CardHeader>
           <CardContent>
             {metrics.lowStockProducts.length === 0 ? (
