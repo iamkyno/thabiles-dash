@@ -7,7 +7,7 @@ import { APP_SECTIONS } from "../src/lib/sections";
 const DEV_PASSWORD = "ChangeMe123!";
 const ALL_SECTIONS = APP_SECTIONS.map((s) => s.key);
 
-async function createAuthUserIfMissing(params: {
+async function createAuthUser(params: {
   name: string;
   email: string;
   role: "ADMIN" | "DEVELOPER" | "STAFF";
@@ -15,10 +15,6 @@ async function createAuthUserIfMissing(params: {
   allowedSections?: string[];
 }) {
   const allowedSections = params.allowedSections ?? [];
-  // Runs on every deploy: never modify an account that already exists (an admin may have changed it).
-  const existing = await prisma.user.findUnique({ where: { email: params.email } });
-  if (existing) return existing;
-
   const result = await auth.api.signUpEmail({
     body: { name: params.name, email: params.email, password: DEV_PASSWORD },
   });
@@ -36,6 +32,13 @@ async function createAuthUserIfMissing(params: {
 }
 
 async function main() {
+  // This runs on every deploy, but only ever sets up a brand-new empty database. Once any account
+  // exists it stops here, so it never adds, changes or re-creates anything in a database in use.
+  if ((await prisma.user.count()) > 0) {
+    console.log("Seed skipped: the database already has data, nothing was changed.");
+    return;
+  }
+
   await prisma.businessProfile.upsert({
     where: { id: 1 },
     update: {},
@@ -48,21 +51,21 @@ async function main() {
     },
   });
 
-  const owner = await createAuthUserIfMissing({
+  const owner = await createAuthUser({
     name: "Thabile",
     email: "owner@thabilesnaturals.test",
     role: "ADMIN",
     phone: "+27 71 500 0001",
   });
 
-  await createAuthUserIfMissing({
+  await createAuthUser({
     name: "Developer",
     email: "developer@thabilesnaturals.test",
     role: "DEVELOPER",
     phone: "+27 71 500 0000",
   });
 
-  await createAuthUserIfMissing({
+  await createAuthUser({
     name: "Sipho",
     email: "sipho@thabilesnaturals.test",
     role: "STAFF",
@@ -70,7 +73,7 @@ async function main() {
     allowedSections: ALL_SECTIONS,
   });
 
-  await createAuthUserIfMissing({
+  await createAuthUser({
     name: "Nomvula",
     email: "nomvula@thabilesnaturals.test",
     role: "STAFF",
