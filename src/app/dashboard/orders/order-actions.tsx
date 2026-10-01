@@ -15,7 +15,7 @@ export function OrderActions({ orderId, status }: { orderId: string; status: str
   if (status === "CANCELLED" || status === "FULFILLED") return null;
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <>
       {status === "PENDING" && (
         <Button
           disabled={pending}
@@ -76,6 +76,6 @@ export function OrderActions({ orderId, status }: { orderId: string; status: str
       >
         Cancel order
       </Button>
-    </div>
+    </>
   );
 }

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Pencil } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -32,6 +32,7 @@ export default async function OrderDetailPage({ params }: PageProps<"/dashboard/
   });
 
   if (!order) notFound();
+  const canEdit = order.status !== "CANCELLED" && !order.invoice;
 
   return (
     <div className="space-y-6">
@@ -96,7 +97,14 @@ export default async function OrderDetailPage({ params }: PageProps<"/dashboard/
             </div>
           </div>
         </CardContent>
-        <CardFooter className="flex flex-wrap gap-2">
+        <CardFooter className="flex flex-col gap-2 *:w-full sm:flex-row sm:flex-wrap sm:*:w-auto">
+          {canEdit && (
+            <Button variant="outline" asChild>
+              <Link href={`/dashboard/orders/${order.id}/edit`}>
+                <Pencil /> Edit order
+              </Link>
+            </Button>
+          )}
           <OrderActions orderId={order.id} status={order.status} />
           {order.invoice ? (
             <Button variant="outline" asChild>
@@ -104,6 +112,11 @@ export default async function OrderDetailPage({ params }: PageProps<"/dashboard/
             </Button>
           ) : (
             order.status !== "CANCELLED" && <GenerateInvoiceButton orderId={order.id} />
+          )}
+          {order.invoice && order.status !== "CANCELLED" && (
+            <p className="text-sm text-muted-foreground sm:basis-full">
+              This order has an invoice, so it can no longer be edited.
+            </p>
           )}
         </CardFooter>
       </Card>

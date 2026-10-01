@@ -9,24 +9,28 @@ import { requireSession, requireSection } from "@/lib/session";
 export async function generateInvoice(orderId: string) {
   const session = await requireSession();
   await requireSection(session, "invoices");
-  const order = await prisma.order.findUniqueOrThrow({ where: { id: orderId }, include: { invoice: true } });
-  if (order.invoice) return { id: order.invoice.id };
+  const invoice = await prisma.$transaction(async (tx) => {
+    // Lock the order row so an edit in progress finishes first and the invoice copies its final totals.
+    await tx.order.updateMany({ where: { id: orderId }, data: { updatedAt: new Date() } });
+    const order = await tx.order.findUniqueOrThrow({ where: { id: orderId }, include: { invoice: true } });
+    if (order.invoice) return order.invoice;
 
-  const issuedAt = new Date();
-  const dueAt = new Date(issuedAt.getTime() + 14 * 24 * 60 * 60 * 1000);
+    const issuedAt = new Date();
+    const dueAt = new Date(issuedAt.getTime() + 14 * 24 * 60 * 60 * 1000);
 
-  const invoice = await prisma.invoice.create({
-    data: {
-      orderId: order.id,
-      customerId: order.customerId,
-      status: "SENT",
-      issuedAt,
-      dueAt,
-      subtotal: order.subtotal,
-      discountTotal: order.discountTotal,
-      taxTotal: order.taxTotal,
-      total: order.total,
-    },
+    return tx.invoice.create({
+      data: {
+        orderId: order.id,
+        customerId: order.customerId,
+        status: "SENT",
+        issuedAt,
+        dueAt,
+        subtotal: order.subtotal,
+        discountTotal: order.discountTotal,
+        taxTotal: order.taxTotal,
+        total: order.total,
+      },
+    });
   });
 
   revalidatePath(`/dashboard/orders/${orderId}`);

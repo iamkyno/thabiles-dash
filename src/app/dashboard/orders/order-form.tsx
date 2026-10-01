@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { Loader2, Plus, Trash2 } from "lucide-react";
 
-import { createOrder } from "@/actions/orders";
+import { createOrder, updateOrder } from "@/actions/orders";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
@@ -35,13 +35,28 @@ import { orderSchema, type OrderFormValues } from "./schema";
 type Option = { id: string; label: string; address?: string };
 type ProductOption = { id: string; name: string; sellPrice: number; stockQty: number };
 
-export function OrderForm({ customers, products }: { customers: Option[]; products: ProductOption[] }) {
+export function OrderForm({
+  customers,
+  products,
+  edit,
+}: {
+  customers: Option[];
+  products: ProductOption[];
+  /** Set to edit an existing order instead of creating one. */
+  edit?: {
+    orderId: string;
+    orderSeq: number;
+    values: OrderFormValues;
+    /** Set when the delivery is already under way and can only be changed from the delivery page. */
+    deliveryLockedReason: string | null;
+  };
+}) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
 
   const form = useForm<OrderFormValues>({
     resolver: zodResolver(orderSchema),
-    defaultValues: {
+    defaultValues: edit?.values ?? {
       customerId: "",
       items: [],
       discountTotal: 0,
@@ -50,6 +65,7 @@ export function OrderForm({ customers, products }: { customers: Option[]; produc
       deliveryAddress: "",
     },
   });
+  const deliveryLocked = Boolean(edit?.deliveryLockedReason);
 
   const itemFields = useFieldArray({ control: form.control, name: "items" });
   const items = form.watch("items");
@@ -72,15 +88,26 @@ export function OrderForm({ customers, products }: { customers: Option[]; produc
   async function onSubmit(values: OrderFormValues) {
     setSubmitting(true);
     try {
-      const result = await createOrder(values);
-      if (!result.ok) {
-        toast.error(result.error);
-        return;
+      if (edit) {
+        const result = await updateOrder(edit.orderId, values);
+        if (!result.ok) {
+          toast.error(result.error);
+          return;
+        }
+        toast.success("Order updated");
+        router.push(`/dashboard/orders/${edit.orderId}`);
+        router.refresh();
+      } else {
+        const result = await createOrder(values);
+        if (!result.ok) {
+          toast.error(result.error);
+          return;
+        }
+        toast.success("Order created");
+        router.push(`/dashboard/orders/${result.data.id}`);
       }
-      toast.success("Order created");
-      router.push(`/dashboard/orders/${result.data.id}`);
     } catch {
-      toast.error("Failed to create order");
+      toast.error(edit ? "Failed to save the order" : "Failed to create order");
     } finally {
       setSubmitting(false);
     }
@@ -91,7 +118,7 @@ export function OrderForm({ customers, products }: { customers: Option[]; produc
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <Card className="max-w-2xl">
           <CardHeader>
-            <CardTitle>New order</CardTitle>
+            <CardTitle>{edit ? "Order details" : "New order"}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <FormField
@@ -105,7 +132,7 @@ export function OrderForm({ customers, products }: { customers: Option[]; produc
                     onValueChange={(v) => {
                       field.onChange(v);
                       const c = customers.find((cc) => cc.id === v);
-                      if (c?.address) form.setValue("deliveryAddress", c.address);
+                      if (c?.address && !deliveryLocked) form.setValue("deliveryAddress", c.address);
                     }}
                   >
                     <FormControl>
@@ -187,7 +214,7 @@ export function OrderForm({ customers, products }: { customers: Option[]; produc
                   />
                   <div className="flex items-center gap-2">
                     <div className="w-full sm:w-24">
-                      <NumberField control={form.control} name={`items.${index}.quantity`} label="" min="1" />
+                      <NumberField control={form.control} name={`items.${index}.quantity`} label="Qty" min="1" />
                     </div>
                     <Button type="button" variant="ghost" size="icon" onClick={() => itemFields.remove(index)}>
                       <Trash2 className="text-destructive" />
@@ -209,11 +236,16 @@ export function OrderForm({ customers, products }: { customers: Option[]; produc
               control={form.control}
               name="needsDelivery"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                  <FormLabel className="mb-0">Needs delivery</FormLabel>
-                  <FormControl>
-                    <Switch checked={field.value} onCheckedChange={field.onChange} />
-                  </FormControl>
+                <FormItem className="rounded-lg border p-3">
+                  <div className="flex flex-row items-center justify-between gap-3">
+                    <FormLabel className="mb-0">Needs delivery</FormLabel>
+                    <FormControl>
+                      <Switch checked={field.value} onCheckedChange={field.onChange} disabled={deliveryLocked} />
+                    </FormControl>
+                  </div>
+                  {edit?.deliveryLockedReason && (
+                    <p className="text-sm text-muted-foreground">{edit.deliveryLockedReason}</p>
+                  )}
                 </FormItem>
               )}
             />
@@ -226,7 +258,7 @@ export function OrderForm({ customers, products }: { customers: Option[]; produc
                   <FormItem>
                     <FormLabel>Delivery address</FormLabel>
                     <FormControl>
-                      <Input {...field} />
+                      <Input {...field} disabled={deliveryLocked} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -253,10 +285,15 @@ export function OrderForm({ customers, products }: { customers: Option[]; produc
               </div>
             </div>
           </CardContent>
-          <CardFooter>
-            <Button type="submit" disabled={submitting}>
+          <CardFooter className="flex flex-col-reverse gap-2 sm:flex-row">
+            {edit && (
+              <Button type="button" variant="outline" className="w-full sm:w-auto" asChild>
+                <Link href={`/dashboard/orders/${edit.orderId}`}>Cancel</Link>
+              </Button>
+            )}
+            <Button type="submit" className="w-full sm:w-auto" disabled={submitting}>
               {submitting && <Loader2 className="animate-spin" />}
-              Create order
+              {edit ? "Save changes" : "Create order"}
             </Button>
           </CardFooter>
         </Card>

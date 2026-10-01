@@ -36,14 +36,14 @@ A management dashboard for a natural beauty products business: product stock, st
 
 Point `DATABASE_URL` at your production PostgreSQL database — Render's own managed Postgres service is the simplest option (create it in the Render dashboard, then paste its internal connection string into this app's `DATABASE_URL`), but any hosted Postgres (Neon, Supabase, RDS, etc.) works too. Set a strong `BETTER_AUTH_SECRET`, and set `BETTER_AUTH_URL`/`NEXT_PUBLIC_BETTER_AUTH_URL` to your production URL.
 
-`npm run build` runs `prisma generate` (via `postinstall`), applies pending migrations with `prisma migrate deploy` (via `prebuild`), then runs the seed script (via `postbuild`) — so a plain `npm install && npm run build` deploy step (e.g. on Render, with the build command `npm install; npm run build`) migrates and seeds the database automatically. The seed script only creates what's missing and never modifies existing records — including user accounts an admin has since changed — so it's safe to run on every deploy, not just the first.
+`npm run build` runs `prisma generate` (via `postinstall`), applies pending migrations with `prisma migrate deploy` (via `prebuild`), then runs the seed script (via `postbuild`) — so a plain `npm install && npm run build` deploy step (e.g. on Render, with the build command `npm install; npm run build`) migrates and seeds the database automatically. The seed script only sets up a brand-new, empty database: once any user account exists it does nothing at all, so it never adds, changes or re-creates anything in a database that's in use and is safe to run on every deploy.
 
 ## How the flow fits together
 
 1. **Products** — each product has a price, a stock quantity and a low-stock alert level (products at or below it are flagged on the Overview).
 2. **Stock orders** — order more of one or more products, recording quantity and unit cost. Marking a stock order as received adds the quantities to each product's stock; an order can be cancelled any time before it's received.
 3. **Combos** — a combo is sold like a product at its own price but has no stock of its own: selling one takes each of its products out of stock (other listed items, such as bottles and containers, aren't stock-counted), and the Products page shows how many current stock can make. Each order records exactly what it took from stock, so cancelling it puts that back even if the combo has been edited since.
-4. **Orders & Deliveries** — customer orders decrement product stock (guarded); an order can optionally have a delivery tracked through pending → in transit → delivered.
+4. **Orders & Deliveries** — customer orders decrement product stock (guarded); an order can optionally have a delivery tracked through pending → in transit → delivered. Orders can be edited until they're invoiced or cancelled: saving puts back what the order held and takes what it now needs (existing lines keep their original price), and the delivery address can only be changed while the delivery is still pending.
 5. **Invoicing** — generate an invoice from a fulfilled order, record payments, and view/print it at `/print/invoices/[id]` (browser print-to-PDF, no headless-browser dependency).
 
 ## Notes

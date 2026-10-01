@@ -15,7 +15,7 @@ import {
 import { prisma } from "@/lib/prisma";
 import { requireSession, requireSection } from "@/lib/session";
 import { formatMoney } from "@/lib/money";
-import { formatDateTime } from "@/lib/tz";
+import { formatDate, formatDateTime } from "@/lib/tz";
 import { orderStatusVariants } from "./schema";
 
 export default async function OrdersPage() {
@@ -54,8 +54,8 @@ export default async function OrdersPage() {
                 <TableRow>
                   <TableHead>Order</TableHead>
                   <TableHead className="hidden sm:table-cell">Date</TableHead>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead className="hidden sm:table-cell">Customer</TableHead>
+                  <TableHead className="hidden sm:table-cell">Status</TableHead>
                   <TableHead className="hidden sm:table-cell">Delivery</TableHead>
                   <TableHead className="text-right whitespace-nowrap">Total</TableHead>
                 </TableRow>
@@ -63,20 +63,30 @@ export default async function OrdersPage() {
               <TableBody>
                 {orders.map((order) => (
                   <TableRow key={order.id}>
-                    <TableCell className="font-medium">
-                      <Link href={`/dashboard/orders/${order.id}`} className="hover:underline">
-                        #{order.orderSeq}
+                    {/* On phones the whole row is one tappable link carrying the customer, status and date. */}
+                    <TableCell className="p-0 sm:p-3">
+                      <Link href={`/dashboard/orders/${order.id}`} className="block p-3 sm:p-0 sm:hover:underline">
+                        <span className="font-medium">#{order.orderSeq}</span>
+                        <span className="sm:hidden"> · {order.customer.name}</span>
+                        <span className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-muted-foreground sm:hidden">
+                          <Badge variant={orderStatusVariants[order.status]}>{order.status}</Badge>
+                          {formatDate(order.createdAt)}
+                        </span>
                       </Link>
                     </TableCell>
                     <TableCell className="hidden text-muted-foreground sm:table-cell">{formatDateTime(order.createdAt)}</TableCell>
-                    <TableCell>{order.customer.name}</TableCell>
-                    <TableCell>
+                    <TableCell className="hidden sm:table-cell">{order.customer.name}</TableCell>
+                    <TableCell className="hidden sm:table-cell">
                       <Badge variant={orderStatusVariants[order.status]}>{order.status}</Badge>
                     </TableCell>
                     <TableCell className="hidden text-muted-foreground sm:table-cell">
                       {order.delivery ? order.delivery.status.replace("_", " ") : "—"}
                     </TableCell>
-                    <TableCell className="text-right whitespace-nowrap">{formatMoney(order.total)}</TableCell>
+                    <TableCell className="p-0 text-right whitespace-nowrap sm:p-3">
+                      <Link href={`/dashboard/orders/${order.id}`} className="block p-3 sm:p-0">
+                        {formatMoney(order.total)}
+                      </Link>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
