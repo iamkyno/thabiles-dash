@@ -44,31 +44,52 @@ export default async function DeliveriesPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Order</TableHead>
-                  <TableHead>Customer</TableHead>
+                  <TableHead>
+                    <span className="sm:hidden">Delivery</span>
+                    <span className="hidden sm:inline">Order</span>
+                  </TableHead>
+                  <TableHead className="hidden sm:table-cell">Customer</TableHead>
                   <TableHead className="hidden sm:table-cell">Address</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead className="hidden sm:table-cell">Status</TableHead>
                   <TableHead className="hidden sm:table-cell">Created</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {deliveries.map((delivery) => (
-                  <TableRow key={delivery.id}>
-                    <TableCell className="font-medium">
-                      <Link href={`/dashboard/deliveries/${delivery.id}`} className="hover:underline">
-                        Order #{delivery.order.orderSeq}
-                      </Link>
-                    </TableCell>
-                    <TableCell>{delivery.customer.name}</TableCell>
-                    <TableCell className="hidden max-w-xs text-muted-foreground sm:table-cell">{delivery.address}</TableCell>
-                    <TableCell>
+                {deliveries.map((delivery) => {
+                  const orderCancelled = delivery.order.status === "CANCELLED";
+                  const status = (
+                    <>
                       <Badge variant={deliveryStatusVariants[delivery.status]}>
                         {delivery.status.replace("_", " ")}
                       </Badge>
-                    </TableCell>
-                    <TableCell className="hidden text-muted-foreground sm:table-cell">{formatDate(delivery.createdAt)}</TableCell>
-                  </TableRow>
-                ))}
+                      {orderCancelled && <Badge variant="destructive">Order cancelled</Badge>}
+                    </>
+                  );
+                  return (
+                    <TableRow key={delivery.id} className={orderCancelled ? "opacity-60" : undefined}>
+                      {/* On phones the whole row is one tappable link with the customer, address, status and date. */}
+                      <TableCell className="p-0 sm:p-3">
+                        <Link href={`/dashboard/deliveries/${delivery.id}`} className="block p-3 sm:p-0 sm:hover:underline">
+                          <span className="font-medium whitespace-nowrap">Order #{delivery.order.orderSeq}</span>
+                          <span className="sm:hidden"> · {delivery.customer.name}</span>
+                          <span className="mt-1 block text-sm text-muted-foreground sm:hidden">{delivery.address}</span>
+                          <span className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-muted-foreground sm:hidden">
+                            {status}
+                            {formatDate(delivery.createdAt)}
+                          </span>
+                        </Link>
+                      </TableCell>
+                      <TableCell className="hidden sm:table-cell">{delivery.customer.name}</TableCell>
+                      <TableCell className="hidden max-w-xs text-muted-foreground sm:table-cell">{delivery.address}</TableCell>
+                      <TableCell className="hidden sm:table-cell">
+                        <div className="flex flex-wrap gap-1">{status}</div>
+                      </TableCell>
+                      <TableCell className="hidden text-muted-foreground whitespace-nowrap sm:table-cell">
+                        {formatDate(delivery.createdAt)}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           )}

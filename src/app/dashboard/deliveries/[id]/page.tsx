@@ -23,6 +23,7 @@ export default async function DeliveryDetailPage({ params }: PageProps<"/dashboa
   });
 
   if (!delivery) notFound();
+  const orderCancelled = delivery.order.status === "CANCELLED";
 
   return (
     <div className="space-y-6">
@@ -46,15 +47,22 @@ export default async function DeliveryDetailPage({ params }: PageProps<"/dashboa
         </div>
       </div>
 
+      {orderCancelled && (
+        <div className="rounded-lg border border-destructive/40 bg-destructive/5 p-4 text-sm">
+          <p className="font-medium">Order #{delivery.order.orderSeq} was cancelled.</p>
+          <p className="text-muted-foreground">This delivery doesn&apos;t need to go out, so its status can no longer be changed.</p>
+        </div>
+      )}
+
       <Card>
         <CardHeader>
           <CardTitle>Status</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <p className="text-sm">
-            <span className="text-muted-foreground">Address: </span>
-            {delivery.address}
-          </p>
+          <div className="text-sm">
+            <p className="text-muted-foreground">Address</p>
+            <p className="whitespace-pre-line">{delivery.address}</p>
+          </div>
           {delivery.dispatchedAt && (
             <p className="text-sm">
               <span className="text-muted-foreground">Dispatched: </span>
@@ -67,18 +75,19 @@ export default async function DeliveryDetailPage({ params }: PageProps<"/dashboa
               {formatDateTime(delivery.deliveredAt)}
             </p>
           )}
-          <DeliveryStatusActions deliveryId={delivery.id} status={delivery.status} />
+          {!orderCancelled && <DeliveryStatusActions deliveryId={delivery.id} status={delivery.status} />}
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Courier details</CardTitle>
+          <CardTitle>Delivery details</CardTitle>
         </CardHeader>
         <CardContent>
           <DeliveryDetailsForm
             deliveryId={delivery.id}
             defaultValues={{
+              address: delivery.address,
               courierName: delivery.courierName ?? "",
               trackingRef: delivery.trackingRef ?? "",
               notes: delivery.notes ?? "",

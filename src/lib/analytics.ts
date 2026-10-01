@@ -15,7 +15,9 @@ export async function getDashboardMetrics() {
       include: { items: { select: { quantity: true } } },
     }),
     prisma.order.count({ where: { status: { in: ["PENDING", "CONFIRMED"] } } }),
-    prisma.delivery.count({ where: { status: { in: ["PENDING", "IN_TRANSIT"] } } }),
+    prisma.delivery.count({
+      where: { status: { in: ["PENDING", "IN_TRANSIT"] }, order: { status: { not: "CANCELLED" } } },
+    }),
     prisma.payment.aggregate({ where: { paidAt: { gte: startOfMonth } }, _sum: { amount: true } }),
   ]);
 
@@ -92,6 +94,10 @@ export async function getInventoryValue(days = 30) {
 }
 
 export async function getDeliveryStatusBreakdown() {
-  const deliveries = await prisma.delivery.groupBy({ by: ["status"], _count: { _all: true } });
+  const deliveries = await prisma.delivery.groupBy({
+    by: ["status"],
+    where: { order: { status: { not: "CANCELLED" } } },
+    _count: { _all: true },
+  });
   return deliveries.map((d) => ({ status: d.status, count: d._count._all }));
 }
