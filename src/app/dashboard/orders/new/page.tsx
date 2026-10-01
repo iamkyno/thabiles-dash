@@ -16,9 +16,8 @@ export default async function NewOrderPage() {
       include: { comboItems: { include: { product: true } } },
     }),
   ]);
-  const sellable = products
-    .map((p) => ({ ...p, available: p.isCombo ? comboCanMake(p.comboItems) : p.stockQty }))
-    .filter((p) => p.available > 0);
+  // Out-of-stock products are still listed (greyed out) so it's clear why they can't be sold.
+  const options = products.map((p) => ({ ...p, available: p.isCombo ? comboCanMake(p.comboItems) : p.stockQty }));
 
   return (
     <div className="space-y-6">
@@ -28,7 +27,7 @@ export default async function NewOrderPage() {
       </div>
       <OrderForm
         customers={customers.map((c) => ({ id: c.id, label: c.name, address: c.address ?? undefined }))}
-        products={sellable.map((p) => ({
+        products={options.map((p) => ({
           id: p.id,
           name: productLabel(p),
           sellPrice: Number(p.sellPrice),

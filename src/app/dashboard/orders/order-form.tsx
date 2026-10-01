@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -137,6 +138,27 @@ export function OrderForm({ customers, products }: { customers: Option[]; produc
                   <Plus /> Add product
                 </Button>
               </div>
+              {products.every((p) => p.stockQty <= 0) && (
+                <p className="rounded-md border border-dashed p-3 text-sm text-muted-foreground">
+                  {products.length === 0 ? (
+                    <>
+                      You don&apos;t have any products yet.{" "}
+                      <Link href="/dashboard/products" className="underline">
+                        Add products
+                      </Link>{" "}
+                      first.
+                    </>
+                  ) : (
+                    <>
+                      Nothing is in stock yet, so products can&apos;t be sold.{" "}
+                      <Link href="/dashboard/stock-orders/new" className="underline">
+                        Add stock with a stock order
+                      </Link>{" "}
+                      and mark it received.
+                    </>
+                  )}
+                </p>
+              )}
               {itemFields.fields.map((f, index) => (
                 <div key={f.id} className="flex flex-col gap-2 sm:flex-row sm:items-end">
                   <FormField
@@ -152,8 +174,9 @@ export function OrderForm({ customers, products }: { customers: Option[]; produc
                           </FormControl>
                           <SelectContent>
                             {products.map((p) => (
-                              <SelectItem key={p.id} value={p.id}>
-                                {p.name} · {p.stockQty} in stock · {formatMoney(p.sellPrice)}
+                              <SelectItem key={p.id} value={p.id} disabled={p.stockQty <= 0}>
+                                {p.name} · {p.stockQty > 0 ? `${p.stockQty} in stock` : "out of stock"} ·{" "}
+                                {formatMoney(p.sellPrice)}
                               </SelectItem>
                             ))}
                           </SelectContent>
