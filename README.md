@@ -36,7 +36,7 @@ A management dashboard for a natural beauty products business: product stock, st
 
 Point `DATABASE_URL` at your production PostgreSQL database — Render's own managed Postgres service is the simplest option (create it in the Render dashboard, then paste its internal connection string into this app's `DATABASE_URL`), but any hosted Postgres (Neon, Supabase, RDS, etc.) works too. Set a strong `BETTER_AUTH_SECRET`, and set `BETTER_AUTH_URL`/`NEXT_PUBLIC_BETTER_AUTH_URL` to your production URL.
 
-`npm run build` runs `prisma generate` (via `postinstall`), applies pending migrations with `prisma migrate deploy` (via `prebuild`), then runs the seed script (via `postbuild`) — so a plain `npm install && npm run build` deploy step (e.g. on Render, with the build command `npm install; npm run build`) migrates and seeds the database automatically. The seed script is idempotent (upsert-based), so it's safe to run on every deploy, not just the first.
+`npm run build` runs `prisma generate` (via `postinstall`), applies pending migrations with `prisma migrate deploy` (via `prebuild`), then runs the seed script (via `postbuild`) — so a plain `npm install && npm run build` deploy step (e.g. on Render, with the build command `npm install; npm run build`) migrates and seeds the database automatically. The seed script only creates what's missing and never modifies existing records — including user accounts an admin has since changed — so it's safe to run on every deploy, not just the first.
 
 ## How the flow fits together
 

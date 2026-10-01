@@ -7,7 +7,7 @@ import { APP_SECTIONS } from "../src/lib/sections";
 const DEV_PASSWORD = "ChangeMe123!";
 const ALL_SECTIONS = APP_SECTIONS.map((s) => s.key);
 
-async function upsertAuthUser(params: {
+async function createAuthUserIfMissing(params: {
   name: string;
   email: string;
   role: "ADMIN" | "DEVELOPER" | "STAFF";
@@ -15,18 +15,9 @@ async function upsertAuthUser(params: {
   allowedSections?: string[];
 }) {
   const allowedSections = params.allowedSections ?? [];
+  // Runs on every deploy: never modify an account that already exists (an admin may have changed it).
   const existing = await prisma.user.findUnique({ where: { email: params.email } });
-  if (existing) {
-    return prisma.user.update({
-      where: { id: existing.id },
-      data: {
-        role: params.role,
-        phone: params.phone,
-        approvalStatus: "APPROVED",
-        allowedSections,
-      },
-    });
-  }
+  if (existing) return existing;
 
   const result = await auth.api.signUpEmail({
     body: { name: params.name, email: params.email, password: DEV_PASSWORD },
@@ -57,21 +48,21 @@ async function main() {
     },
   });
 
-  const owner = await upsertAuthUser({
+  const owner = await createAuthUserIfMissing({
     name: "Thabile",
     email: "owner@thabilesnaturals.test",
     role: "ADMIN",
     phone: "+27 71 500 0001",
   });
 
-  await upsertAuthUser({
+  await createAuthUserIfMissing({
     name: "Developer",
     email: "developer@thabilesnaturals.test",
     role: "DEVELOPER",
     phone: "+27 71 500 0000",
   });
 
-  await upsertAuthUser({
+  await createAuthUserIfMissing({
     name: "Sipho",
     email: "sipho@thabilesnaturals.test",
     role: "STAFF",
@@ -79,7 +70,7 @@ async function main() {
     allowedSections: ALL_SECTIONS,
   });
 
-  await upsertAuthUser({
+  await createAuthUserIfMissing({
     name: "Nomvula",
     email: "nomvula@thabilesnaturals.test",
     role: "STAFF",
