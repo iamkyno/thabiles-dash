@@ -44,7 +44,7 @@ export default async function InvoicesPage({ searchParams }: PageProps<"/dashboa
     paid: { status: "PAID" },
   };
 
-  const [invoices, owed, late, business] = await Promise.all([
+  const [invoices, owed, late, received, paidInFull, business] = await Promise.all([
     prisma.invoice.findMany({
       where: where[filter],
       orderBy: { createdAt: "desc" },
@@ -53,11 +53,15 @@ export default async function InvoicesPage({ searchParams }: PageProps<"/dashboa
     }),
     prisma.invoice.aggregate({ where: unpaid, _sum: { total: true, amountPaid: true }, _count: { _all: true } }),
     prisma.invoice.aggregate({ where: overdue, _sum: { total: true, amountPaid: true }, _count: { _all: true } }),
+    // Everything clients have paid, including part payments on invoices not yet settled.
+    prisma.invoice.aggregate({ where: { status: { not: "VOID" } }, _sum: { amountPaid: true } }),
+    prisma.invoice.count({ where: { status: "PAID" } }),
     readBusinessProfile(),
   ]);
 
   const owedAmount = Number(owed._sum.total ?? 0) - Number(owed._sum.amountPaid ?? 0);
   const lateAmount = Number(late._sum.total ?? 0) - Number(late._sum.amountPaid ?? 0);
+  const receivedAmount = Number(received._sum.amountPaid ?? 0);
 
   return (
     <div className="space-y-6">
@@ -66,7 +70,7 @@ export default async function InvoicesPage({ searchParams }: PageProps<"/dashboa
         <p className="text-muted-foreground">Track what&apos;s owed, record payments and send invoices to clients.</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 sm:max-w-md">
+      <div className="grid grid-cols-2 gap-3 sm:max-w-2xl sm:grid-cols-3">
         <Link href="/dashboard/invoices?show=unpaid" className="rounded-lg border bg-card p-4 hover:bg-muted/50">
           <p className="text-sm text-muted-foreground">Still owed</p>
           <p className="mt-1 text-lg font-semibold whitespace-nowrap">{formatMoney(owedAmount)}</p>
@@ -83,6 +87,16 @@ export default async function InvoicesPage({ searchParams }: PageProps<"/dashboa
           </p>
           <p className="text-xs text-muted-foreground">
             {late._count._all} invoice{late._count._all === 1 ? "" : "s"}
+          </p>
+        </Link>
+        <Link
+          href="/dashboard/invoices?show=paid"
+          className="col-span-2 rounded-lg border bg-card p-4 hover:bg-muted/50 sm:col-span-1"
+        >
+          <p className="text-sm text-muted-foreground">Paid</p>
+          <p className="mt-1 text-lg font-semibold whitespace-nowrap">{formatMoney(receivedAmount)}</p>
+          <p className="text-xs text-muted-foreground">
+            {paidInFull} invoice{paidInFull === 1 ? "" : "s"} paid in full
           </p>
         </Link>
       </div>
@@ -121,7 +135,8 @@ export default async function InvoicesPage({ searchParams }: PageProps<"/dashboa
                   <TableHead className="hidden sm:table-cell">Issued</TableHead>
                   <TableHead className="hidden sm:table-cell">Due</TableHead>
                   <TableHead className="hidden sm:table-cell">Status</TableHead>
-                  <TableHead className="hidden text-right whitespace-nowrap sm:table-cell">Balance</TableHead>
+                  <TableHead className="hidden text-right whitespace-nowrap sm:table-cell">Total</TableHead>
+                  <TableHead className="hidden text-right whitespace-nowrap sm:table-cell">Still owed</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -132,9 +147,10 @@ export default async function InvoicesPage({ searchParams }: PageProps<"/dashboa
                     <Badge variant={invoiceStatusVariants[status]}>{invoiceStatusLabels[status]}</Badge>
                   );
                   const showDue = inv.dueAt && balance > 0;
+                  const partPaid = balance > 0 && Number(inv.amountPaid) > 0;
                   return (
                     <TableRow key={inv.id} className={inv.status === "VOID" ? "opacity-60" : undefined}>
-                      {/* On phones the whole row is one tappable link with the customer, status, due date and balance. */}
+                      {/* On phones the whole row is one tappable link with the customer, status, due date and amount. */}
                       <TableCell className="p-0 sm:p-3">
                         <Link
                           href={`/dashboard/invoices/${inv.id}`}
@@ -150,7 +166,12 @@ export default async function InvoicesPage({ searchParams }: PageProps<"/dashboa
                               {showDue && inv.dueAt && `Due ${formatDate(inv.dueAt)}`}
                             </span>
                           </span>
-                          <span className="font-medium whitespace-nowrap sm:hidden">{formatMoney(balance)}</span>
+                          <span className="text-right whitespace-nowrap sm:hidden">
+                            <span className="font-medium">{formatMoney(inv.total)}</span>
+                            {partPaid && (
+                              <span className="mt-1.5 block text-xs text-muted-foreground">{formatMoney(balance)} owed</span>
+                            )}
+                          </span>
                         </Link>
                       </TableCell>
                       <TableCell className="hidden sm:table-cell">{inv.customer.name}</TableCell>
@@ -164,7 +185,10 @@ export default async function InvoicesPage({ searchParams }: PageProps<"/dashboa
                       </TableCell>
                       <TableCell className="hidden sm:table-cell">{badge}</TableCell>
                       <TableCell className="hidden text-right whitespace-nowrap sm:table-cell">
-                        {formatMoney(balance)}
+                        {formatMoney(inv.total)}
+                      </TableCell>
+                      <TableCell className="hidden text-right whitespace-nowrap sm:table-cell">
+                        {balance > 0 ? formatMoney(balance) : <span className="text-muted-foreground">—</span>}
                       </TableCell>
                     </TableRow>
                   );
